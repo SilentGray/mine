@@ -17,4 +17,6 @@ class Object:
         config = configparser.ConfigParser()
         config.read('custom/object.ini')
 
-        self.type = config.get(objType, 'type')
+        self.name = config.get(objType, 'name')
+        self.isDecorative = config.get(objType, 'decorative')
+        self.display = config.get(objType, 'display')

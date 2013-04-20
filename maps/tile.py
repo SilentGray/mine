@@ -14,7 +14,7 @@ import maps.hostile as hostile
 class Tile:
     """Class for handling and manipulating game tiles"""
 
-    def __init__(self, tileType='i'):
+    def __init__(self, tileType='I'):
         """Initialises a new tile object"""
         log.debug('New tile, type: %s' % tileType)
 
