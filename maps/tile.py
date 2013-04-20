@@ -3,14 +3,20 @@
 #-----------------------------------------------------------------------------
 """Class for manipulating gameplay tiles"""
 
-import ConfigParser
-import maps.object as TileObj
+# Python imports
+import logging as log
+import configparser
+
+# Module imports.
+import maps.object as tileObj
+import maps.hostile as hostile
 
 class Tile:
     """Class for handling and manipulating game tiles"""
 
     def __init__(self, tileType='i'):
         """Initialises a new tile object"""
+        log.debug('New tile, type: %s' % tileType)
 
         self.type = tileType
         self.display = '?'
@@ -18,18 +24,19 @@ class Tile:
         self.hostile = None
         self.accessible = False
 
-        self.__populateType()
+        self.__populate()
 
 
     def __populate(self):
         """Sets the default values for the tile"""
+        log.debug('Populating tile with default values')
 
-        config = ConfigParser.RawConfigParser()
-        config.read('tile.ini')
+        config = configparser.ConfigParser()
+        config.read('custom/tile.ini')
 
-        self.display = config.get(self.type, 'display', '?')
+        self.display = config.get(self.type, 'display')
 
-        access = config.get(self.type, 'access', 'False')
+        access = config.get(self.type, 'access')
         if access.lower() == 'true' or access.lower() == 'yes':
             self.accessible = True
         else:
@@ -38,11 +45,28 @@ class Tile:
 
     def addObject(self, objType):
         """Add an item or enemy that the tile contains"""
+        log.debug(('Adding object %s to %s tile' % (objType, self.type)))
 
-        newObj = TileObj.Object(objType)
+        config = configparser.ConfigParser()
+        config.read('custom/object.ini')
 
-        if newObj.type = 'Item':
-            self.isItem = newObj
+        if objType in config.sections():
+            log.debug('New object is an... object')
+            if self.item:
+                log.warning('New object %s overwrites previous tile item %s' %
+                            (objType, self.item.type))
+            self.item = tileObj.Object(objType)
+            return
 
-        elif newObj.type = 'Hostile':
-            self.hostile = newObj
+        config.read('custom/hostile.ini')
+
+        if objType in config.sections():
+            log.debug('New object is a hostile')
+            if self.hostile:
+                log.error('Cannot set multiple hostiles on same tile!')
+                raise Exception
+            self.hostile = hostile.Hostile(objType)
+            return
+
+        log.error('Unrecognised object: %s' % objType)
+        raise Exception
