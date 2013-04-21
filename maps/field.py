@@ -118,20 +118,19 @@ class Field:
 
                 print(elem, end='')
 
-            if (lineCount % 10) is 0 or lineCount is 0:
+            if (lineCount % 5) is 0 or lineCount is 0:
                 print(' < %d' % lineCount, end='')
-                lineCount = 0
 
             lineCount += 1
             print('')
 
-        totalUnits = int(len(self.grid[0]) / 10) + 1
+        totalUnits = int(len(self.grid[0]) / 5) + 1
         print(spacer, end='')
         for unit in range(0, totalUnits):
-            print('^         ', end='')
+            print('^    ', end='')
         print('\n' + spacer, end='')
         for unit in range(0, totalUnits):
-            print('%-10d' % unit, end='')
+            print('%-5d' % (unit * 5), end='')
         print('')
 
         return True
