@@ -1,0 +1,40 @@
+Basic combat-info screen
+
+|------------------------------------------------|
+|                                                |
+|  Unit-01············     Unit-02············   |
+|    Status:··········       Status:··········   |
+|  Unit-03············     Unit-04············   |
+|    Status:··········       Status:··········   |
+|                                                |
+|  Hostile-01·········     Hostile-02·········   |
+|    Status:··········       Status:··········   |
+|                                                |
+|  Battle-order:                                 |
+|    Unit-02, Unit-03, Hostile-02, Unit-01       |
+|                                                |
+|------------------------------------------------|
+|  Available actions for Unit-01:                |
+|    attack, hack, defend                        |
+|  >>                                            |
+|------------------------------------------------|
+
+What to display:
+  Battlefield info:
+
+  My Team Info:
+    Name of unit
+    HP remaining
+    Status effects
+
+  Enemy info:
+    Name of unit
+    (Known) status effects
+
+  Combat info:
+    Combat order
+
+  Player prompt:
+    Available moves
+    Action information
+
