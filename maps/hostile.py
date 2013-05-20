@@ -18,3 +18,4 @@ class Hostile():
         config.read('custom/hostile.ini')
 
         self.name = config.get(hostType, 'name')
+        self.display = config.get(hostType, 'display')

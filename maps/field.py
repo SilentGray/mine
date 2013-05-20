@@ -36,7 +36,7 @@ class Field:
         self.name = config.get(self.mapId, 'name')
         mapString = config.get(self.mapId, 'mapstring')
 
-        self.grid = self.__generateField(mapString)
+        self.__generateField(mapString)
 
 
     def __generateField(self, mapString):
@@ -44,7 +44,7 @@ class Field:
         log.debug('Generating new field')
         log.info('Generating new map; %s' % self.name)
 
-        grid = []
+        self.grid = []
         newTile = None
 
         for line in mapString.split('\\'):
@@ -73,22 +73,64 @@ class Field:
                     newTile.addObject(elem)
 
             if len(newLine) > 0:
-                grid.append(newLine)
+                self.grid.append(newLine)
 
         #----------------------------------------------------------------------
         # Verify that we have a rectangular grid.
         #----------------------------------------------------------------------
         try:
-            assert(len(grid) > 0) and (len(grid[0]) > 0)
+            assert(len(self.grid) > 0) and (len(self.grid[0]) > 0)
 
-            validLen = len(grid[0])
+            validLen = len(self.grid[0])
 
-            for line in grid:
+            for line in self.grid:
                 assert(len(line) is validLen)
 
         except:
             log.error('Grid for field %s is invalid!' % self.mapId)
-            lengths = [len(length) for length in grid]
+            lengths = [len(length) for length in self.grid]
             log.error('Line lengths: ')
             log.error(lengths)
             raise Exception
+
+
+    def printMap(self):
+        """Print the grid contained by the field object"""
+        log.info('Printing map for %s', self.name)
+
+        if not self.grid:
+            log.error('Loaded field %s has no containing data' % self.name)
+            raise Exception
+
+        spacer = '  '
+        lineCount = 0
+        for line in self.grid:
+
+            print(spacer, end='')
+
+            for tile in line:
+                if tile.hostile:
+                    elem = tile.hostile.display
+                elif tile.item:
+                    elem = tile.item.display
+                else:
+                    elem = tile.display
+
+                print(elem, end='')
+
+            if (lineCount % 5) is 0 or lineCount is 0:
+                print(' < %d' % lineCount, end='')
+
+            lineCount += 1
+            print('')
+
+        totalUnits = int(len(self.grid[0]) / 5) + 1
+        print(spacer, end='')
+        for unit in range(0, totalUnits):
+            print('^    ', end='')
+        print('\n' + spacer, end='')
+        for unit in range(0, totalUnits):
+            print('%-5d' % (unit * 5), end='')
+        print('')
+
+        return True
