@@ -7,7 +7,7 @@
 import logging as log
 import unittest
 import sys
-import os
+import configparser
 
 sys.path.append('.')
 
@@ -16,11 +16,13 @@ import maps.field as field
 import maps.hostile as hostile
 import maps.object as object
 import maps.tile as tile
+import unittests.testutils.testutils as testutils
 
 log.basicConfig(filename='logs/mine.log',
                 level=log.DEBUG,
                 filemode='w',
                 format='%(levelname)s >> %(message)s')
+soh = testutils.StdOutHandler()
 
 class TestFieldsModule(unittest.TestCase):
     """Unit tests for the fields module"""
@@ -40,11 +42,19 @@ class TestFieldsModule(unittest.TestCase):
         #----------------------------------------------------------------------
         # Print the map to /dev/null, not the test.
         #----------------------------------------------------------------------
-        oldStdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
+        soh.hideStdOut()
         self.assertTrue(newField.printMap())
-        sys.stdout.close()
-        sys.stdout = oldStdout
+        soh.restoreStdOut()
+
+    def verifyGrids(self):
+        """Unit test to verify custom maps"""
+        log.info('Starting custom map verification')
+
+        allIds = testutils.getKeys('custom/maps.ini')
+
+        for thisId in allIds:
+            log.info('Testing map, ID: %s' % thisId)
+            self.assertTrue(field.Field(thisId))
 
 class TestTilesModule(unittest.TestCase):
     """Unit tests for the tiles module"""

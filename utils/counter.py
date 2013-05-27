@@ -37,13 +37,12 @@ class Counter:
             log.debug('Increasing value from %d to minimum.', self.value)
             self.value = self.minimum
 
-    def reset(self):
-        """Reset the counter"""
-        log.debug('Resetting a counter.')
+    def getValue(self):
+        """Returns the counter value"""
+        log.debug('Returning the counter value')
+        return(self.value)
 
-        self.value = self.default
-
-    def decrease(self, amount):
+    def reduce(self, amount):
         """Decrease the counter"""
         log.debug('Decreasing a counter.')
         amount = int(amount)
@@ -52,7 +51,7 @@ class Counter:
         self._cleanup()
 
     def increase(self, amount):
-        """Increase the counter"""
+        """Increase a counter"""
         log.debug('Increasing a counter.')
         amount = int(amount)
 
@@ -65,9 +64,22 @@ class Counter:
 
         self.value = self.minimum()
 
+    def reset(self):
+        """Reset the counter"""
+        log.debug('Resetting a counter.')
+
+        self.value = self.default
+
     def reduceFraction(self, fraction):
         """Reduce the amount by a fraction"""
         log.debug('Reducing the counter by a fraction')
 
         newValue = self.value * (1 - fraction)
+        self.value = int(newValue)
+
+    def increaseFraction(self, fraction):
+        """Increase the amount by a fraction"""
+        log.debug('Increasing the counter by a fraction')
+
+        newValue = self.value * (1 + fraction)
         self.value = int(newValue)

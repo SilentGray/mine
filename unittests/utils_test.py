@@ -26,35 +26,35 @@ class TestCounterModule(unittest.TestCase):
         log.info('Starting basic counter unit-test')
 
         newCounter = counter.Counter(100)
-        self.assertEqual(newCounter.value, 100)
+        self.assertEqual(newCounter.getValue(), 100)
         newCounter.reset()
-        self.assertEqual(newCounter.value, 100)
+        self.assertEqual(newCounter.getValue(), 100)
 
         newCounter = counter.Counter(100, initFull=False)
-        self.assertEqual(newCounter.value, 0)
+        self.assertEqual(newCounter.getValue(), 0)
         newCounter.reset()
-        self.assertEqual(newCounter.value, 0)
+        self.assertEqual(newCounter.getValue(), 0)
 
     def testBasicArith(self):
         """Test of basic arithmetic"""
         log.info('Starting basic arithmetic unit-test')
 
         newCounter = counter.Counter(100)
-        newCounter.decrease(50)
-        self.assertEqual(newCounter.value, 50)
+        newCounter.reduce(50)
+        self.assertEqual(newCounter.getValue(), 50)
 
         newCounter.increase(100)
-        self.assertEqual(newCounter.value, 100)
+        self.assertEqual(newCounter.getValue(), 100)
 
-        newCounter.decrease(100)
-        self.assertEqual(newCounter.value, 0)
+        newCounter.reduce(100)
+        self.assertEqual(newCounter.getValue(), 0)
 
         newCounter.reset()
         newCounter.reduceFraction(0.25)
-        self.assertEqual(newCounter.value, 75)
+        self.assertEqual(newCounter.getValue(), 75)
 
         newCounter.reduceFraction(0.25)
-        self.assertEqual(newCounter.value, 56)
+        self.assertEqual(newCounter.getValue(), 56)
 
 if __name__ == "__main__":
     for testClass in [TestCounterModule]:
