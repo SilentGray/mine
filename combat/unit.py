@@ -9,6 +9,7 @@ import configparser
 
 # Modules imports
 import utils.counter as counter
+import combat.command as command
 
 class Unit:
     """Class for handling and manipulating combat units"""
@@ -26,11 +27,24 @@ class Unit:
             log.error('Invalid unit ID: %s' % self.unitId)
             raise Exception
 
-        self.name = config.get(self.unitId, 'name')
-        self.speed = int(config.get(self.unitId, 'speed'))
-        self.speedCount = counter.Counter(self.speed)
-        self.hitpoints = counter.Counter(int(config.get(self.unitId,
-                                                        'hitpoints')))
+        def getConfig(field):
+            return config.get(self.unitId, field)
+
+        self.name = getConfig('name')
+        self.speed = int(getConfig('speed'))
+        self.hitpoints = counter.Counter(int(getConfig('hitpoints')))
+
+        # Setup a list of commands the unit can use.
+        self._generate_commands(getConfig('commands').split(','))
+
+    def _generate_commands(self, entries):
+        """Generate the command objects for this unit"""
+        log.debug('Adding commands to unit %s' % self)
+        self.commands = []
+
+        for entry in entries:
+            newCommand = command.Command(entry)
+            self.commands.append(newCommand)
 
     def kill(self):
         """Kill a unit"""
@@ -68,3 +82,8 @@ class Unit:
         log.debug('Unit %s heals by fraction %d' % (self.name, fraction))
 
         self.hitpoints.increaseFraction(fraction)
+
+    def listCommands(self):
+        """Returns commands available for a unit"""
+        log.debug('Getting commands for %s' % self.name)
+        return ', '.join([command.name for command in self.commands])
