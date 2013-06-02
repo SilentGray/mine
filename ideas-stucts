@@ -1,0 +1,15 @@
+Combat classes
+  Combat
+   \-Units (Allied and Hostile)
+      \-<Name>
+       -Commands
+       -HP
+       -Status (Stun, Blind, KO)
+       -Unit-type
+         \-Stats (HP, Speed, Defence, Attack)
+   \-<Environment information>
+
+World
+  World-map commands
+  Events
+

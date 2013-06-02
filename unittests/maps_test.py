@@ -1,34 +1,37 @@
 #----------------------------------------------------------------------------- 
-# Script: minetests
+# Script: mapstests
 #----------------------------------------------------------------------------- 
-"""Unittest script for Mine"""
+"""Unittest script for map functions"""
 
 # Python imports.
 import logging as log
 import unittest
 import sys
-import os
+import configparser
+
+sys.path.append('.')
 
 # Module imports.
 import maps.field as field
 import maps.hostile as hostile
 import maps.object as object
 import maps.tile as tile
+import unittests.testutils.testutils as testutils
 
-log.basicConfig(filename='mine.log',
+log.basicConfig(filename='logs/mine.log',
                 level=log.DEBUG,
                 filemode='w',
                 format='%(levelname)s >> %(message)s')
+soh = testutils.StdOutHandler()
 
-class TestMapsModule(unittest.TestCase):
-    """Unit tests for the maps module"""
+class TestFieldsModule(unittest.TestCase):
+    """Unit tests for the fields module"""
 
     def testBasicGridGeneration(self):
         """Unit test for generating grids from a basic mapstring"""
         log.info('Starting grid-generation unit-test')
 
         self.assertTrue(field.Field('basic'))
-
 
     def testBasicGridDisplay(self):
         """Unit test for printing a basic grid"""
@@ -39,12 +42,22 @@ class TestMapsModule(unittest.TestCase):
         #----------------------------------------------------------------------
         # Print the map to /dev/null, not the test.
         #----------------------------------------------------------------------
-        oldStdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
+        soh.hideStdOut()
         self.assertTrue(newField.printMap())
-        sys.stdout.close()
-        sys.stdout = oldStdout
+        soh.restoreStdOut()
 
+    def verifyGrids(self):
+        """Unit test to verify custom maps"""
+        log.info('Starting custom map verification')
+
+        allIds = testutils.getKeys('custom/maps.ini')
+
+        for thisId in allIds:
+            log.info('Testing map, ID: %s' % thisId)
+            self.assertTrue(field.Field(thisId))
+
+class TestTilesModule(unittest.TestCase):
+    """Unit tests for the tiles module"""
 
     def testAddObjectToTile(self):
         """Unit test for adding multiple objects to tiles"""
@@ -64,8 +77,20 @@ class TestMapsModule(unittest.TestCase):
         with self.assertRaises(Exception):
             testTile.addObject('s')
 
+class TestHostileModule(unittest.TestCase):
+    """Unit tests for the hostile module"""
+
+    pass
+
+class TestObjectModule(unittest.TestCase):
+    """Unit tests for the object module"""
+
+    pass
 
 if __name__ == "__main__":
-    for testClass in [TestMapsModule]:
+    for testClass in [TestFieldsModule,
+                      TestTilesModule,
+                      TestHostileModule,
+                      TestObjectModule]:
         suite = unittest.TestLoader().loadTestsFromTestCase(testClass)
         unittest.TextTestRunner(verbosity=1).run(suite)
