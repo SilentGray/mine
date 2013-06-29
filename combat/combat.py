@@ -7,6 +7,7 @@
 import logging as log
 
 # Module imports.
+from utils.exceptions import CombatException
 import combat.timer as timer
 import combat.unit as unit
 import display.interface as intface
@@ -41,6 +42,12 @@ class Combat:
             nextEvent = self.spin()
             log.debug('Next event: %s' % nextEvent)
 
+            intface.printSpacer()
+            intface.printBlank()
+            self.printStatus()
+            intface.printBlank()
+            intface.printSpacer()
+
             #------------------------------------------------------------------
             # For units we let them handle an action.
             #------------------------------------------------------------------
@@ -48,22 +55,25 @@ class Combat:
                 log.debug('Next event is a unit')
                 if nextEvent.subject in self.units:
                     log.debug('Next event is a friendly unit')
-                    nextEvent.subject.userTurn()
+                    nextEvent.subject.turn(self.units,
+                                           self.hostiles)
                 elif nextEvent.subject in self.hostiles:
                     log.debug('Next event is a hostile unit')
-                    nextEvent.subject.autoTurn()
+                    nextEvent.subject.turn(self.units,
+                                           self.hostiles,
+                                           user=True)
                 else:
                     log.error('Unrecognised unit found in combat')
                     log.debug('Unit: %s - %s' % (nextEvent.subject.name,
                                                  nextEvent.subject))
-                    raise Exception
+                    raise CombatException
 
             #------------------------------------------------------------------
             # For events trigger the event action.
             #------------------------------------------------------------------
             else:
                 log.debug('Next event is not a unit')
-                raise Exception
+                raise CombatException
                 # General event handling not yet implemented
 
         #----------------------------------------------------------------------
@@ -96,12 +106,15 @@ class Combat:
 
                     if self.nextActive > len(self.combatList):
                         self.nextActive = 0
-                    return event.subject
+                    return event
 
             cycles += 1
         log.error('Cycle span for too long without a result')
-        raise Exception
+        raise CombatException
 
+    #--------------------------------------------------------------------------
+    # Combat display handling.
+    #--------------------------------------------------------------------------
     def printStatus(self):
         """Prints the combat status display"""
         log.debug('Printing combat status')
@@ -137,4 +150,3 @@ class Combat:
         log.debug('Printing a combat action')
 
         pass
-
