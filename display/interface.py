@@ -39,3 +39,10 @@ def printTwoColumns(text1, text2):
 def printPrompt():
     """Prints a prompt"""
     print('>>', end='  ')
+
+def getInput():
+    """Gets input"""
+    printPrompt()
+
+    # To implement.
+    return

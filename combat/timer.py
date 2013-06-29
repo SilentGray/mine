@@ -9,6 +9,7 @@ import logging as log
 # Module imports.
 import utils.counter as counter
 
+# Timer types.
 SILENT = 0
 POP = 1
 POP_DIE = 2
@@ -16,12 +17,12 @@ POP_DIE = 2
 class Timer:
     """Class for managing combat timers"""
 
-    def __init__(self, object, count, recurring=False):
+    def __init__(self, objt, count, recurring=False):
         """Initialise a new timer"""
         log.debug('Initializing new timer %s' % self)
 
         self.time = counter.Counter(count)
-        self.subject = object
+        self.subject = objt
         self.recurring = recurring
 
     def expire(self):

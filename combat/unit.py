@@ -10,6 +10,7 @@ import configparser
 # Modules imports
 import utils.counter as counter
 import combat.command as command
+import display.interface as intface
 
 class Unit:
     """Class for handling and manipulating combat units"""
@@ -45,6 +46,23 @@ class Unit:
         for entry in entries:
             newCommand = command.Command(entry)
             self.commands.append(newCommand)
+
+    def turn(self, allies, hostiles, user=False):
+        """Unit takes a turn"""
+        log.debug('Turn from %s next' % self.name)
+
+        if not user:
+            log.debug('Turn is automated')
+
+        else:
+            log.debug('User turn')
+            choice = self.getChoice()
+
+            if not choice.selfOnly:
+                log.debug('Prompting for a target')
+                targetChoice = self.getTarget()
+
+        # Do action.
 
     def kill(self):
         """Kill a unit"""
@@ -87,3 +105,38 @@ class Unit:
         """Returns commands available for a unit"""
         log.debug('Getting commands for %s' % self.name)
         return ', '.join([command.name for command in self.commands])
+
+    def getChoice(self):
+        """Gets an action for a turn"""
+        log.debug('Getting an action')
+
+        promptText = 'Commands available to %s:' % self.name
+        commands = [cmd.name for cmd in self.commands]
+
+        return self.userInput(promptText, commands)
+
+    def getTarget(self, targets):
+        """Gets a target for an action"""
+        log.debug('Getting a target')
+
+        promptText = 'Targets available for action:'
+        targets = [act.name for act in targets]
+
+        return self.userInput(promptText, targets)
+
+    def userInput(self, promptText, options):
+        """Gets a users choice for an action"""
+        log.debug('Get choice for action')
+        intface.printText('\n'.join([promptText,
+                                     [option.name for option in options]]))
+
+        # Get user choice.
+        choice = intface.getInput()
+
+        for option in options:
+            if choice == option.name:
+                log.debug('Returning option: %s' % option.name)
+                return option
+
+        log.error('No valid option returned from user input: %s' % choice)
+        raise Exception

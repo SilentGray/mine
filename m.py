@@ -11,12 +11,12 @@ log.basicConfig(filename='logs/mine.log',
                 format='%(levelname)s >> %(message)s')
 
 def printExit():
-  print('')
+    print('')
 
 def printHeader(text):
-  printExit()
-  print(text)
-  print('')
+    printExit()
+    print(text)
+    print('')
 
 printHeader('Field example')
 f = fi.Field()
