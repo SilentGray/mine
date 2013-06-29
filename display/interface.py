@@ -29,6 +29,10 @@ def printBlank():
     """Prints a blank line"""
     print(EDGE + ('{:%s^78}' % BLANK).format('') + EDGE)
 
+def printRefresh():
+    """Print alot, to clear the terminal"""
+    print(79*'\n')
+
 def printTwoColumns(text1, text2):
     """Prints two columns of text side-by-side"""
     lines1 = text1.split('\n')
@@ -71,7 +75,6 @@ def userInput(promptText, options):
 
     log.error('No valid option returned from user input: %s' % choice)
     raise InterfaceException
-
 
 def _getInput():
     """Gets input"""

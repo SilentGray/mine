@@ -42,6 +42,7 @@ class Combat:
             nextEvent = self.spin()
             log.debug('Next event: %s' % nextEvent)
 
+            intface.printRefresh()
             intface.printSpacer()
             intface.printBlank()
             self.printStatus()
