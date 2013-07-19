@@ -16,6 +16,8 @@ import display.interface as intface
 LOSS = 1
 VICTORY = 2
 
+LIST_LIMIT = 4
+
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
 
@@ -46,6 +48,8 @@ class Combat:
             intface.printSpacer()
             intface.printBlank()
             self.printStatus()
+            intface.printBlank()
+            self.printOrder()
             intface.printBlank()
             intface.printSpacer()
 
@@ -85,6 +89,11 @@ class Combat:
         elif len(self.hostiles is 0):
             return VICTORY
 
+    def activelist(self):
+        """Returns the active combatlist"""
+        return (self.combatList[self.nextActive:] +
+                self.combatList[:self.nextActive])
+
     def spin(self):
         """Cycle the combat to the next action"""
         log.debug('Spinning cycle')
@@ -94,8 +103,7 @@ class Combat:
         # For safety ensure we find a result within 500 cycles.
         #----------------------------------------------------------------------
         while cycles < 500:
-            for event in (self.combatList[self.nextActive:] +
-                          self.combatList[:self.nextActive]):
+            for event in self.activelist():
                 log.debug('Checking %s' % event)
                 result = event.checkValid()
 
@@ -121,10 +129,11 @@ class Combat:
         log.debug('Printing combat status')
 
         def singleEntry(entry):
-            return("""%s: %d/%d\n  Status: OK""" %
+            return("""%s: %d/%d\n  Status: %s""" %
                                                   ('{:<15}'.format(entry.name),
                                                    entry.hitpoints.getValue(),
-                                                   entry.hitpoints.maximum))
+                                                   entry.hitpoints.maximum,
+                                                   entry.state()))
 
         def displayEntries(entries):
             maxNum = len(entries)
@@ -135,9 +144,27 @@ class Combat:
                 intface.printTwoColumns(singleEntry(entries[maxNum - 1]),
                                         '')
 
+        intface.printText('-- Allied units  --')
         displayEntries(self.units)
         intface.printBlank()
+        intface.printText('-- Hostile units --')
         displayEntries(self.hostiles)
+
+    def printOrder(self):
+        """Prints the upcoming combat order"""
+        log.debug('Printing combat order')
+
+        numToPrint = len(self.units + self.hostiles)
+        if numToPrint > LIST_LIMIT:
+            log.debug('Limit combat list to next four units')
+            numToPrint = LIST_LIMIT
+
+        if numToPrint > len(self.activelist()):
+            raise CombatException
+
+        intface.printText('Upcoming turns:')
+        intface.printText('  ' + ', '.join([entry.subject.name for entry in
+                                            self.activelist()[:numToPrint]]))
 
     def printCommands(self, unit):
         """Prints commands available for the next turn"""
@@ -145,9 +172,3 @@ class Combat:
 
         intface.printText('Available actions for %s:' % unit.name)
         intface.printText('  %s' % unit.listCommands())
-
-    def printAction(self, command, target):
-        """Prints an action"""
-        log.debug('Printing a combat action')
-
-        pass

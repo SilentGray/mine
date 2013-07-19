@@ -61,7 +61,7 @@ def userInput(promptText, options):
     while not choice:
         # Get user choice.
         printText('\n'.join([promptText,
-                                    ', '.join([o.name for o in options])]))
+                            '  '+ ', '.join([o.name for o in options])]))
         choice = _getInput()
 
         for option in options:

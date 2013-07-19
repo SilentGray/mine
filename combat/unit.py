@@ -14,6 +14,10 @@ from display.interface import userInput
 import utils.counter as counter
 import combat.command as command
 
+# Status.
+OK = 'OK'
+DEAD = 'Dead'
+
 class Unit:
     """Class for handling and manipulating combat units"""
 
@@ -66,6 +70,16 @@ class Unit:
                                             auto=self.auto)
 
         print('>>>   %s uses %s on %s.   <<<' % (self.name, choice.name, targetChoice.name))
+
+    def state(self):
+        """Returns the state of the unit"""
+        log.debug('Getting state for unit %s' % self.name)
+
+        if self.hitpoints.value == 0:
+            log.debug('Unit is dead')
+            return DEAD
+
+        return OK
 
     def kill(self):
         """Kill a unit"""
