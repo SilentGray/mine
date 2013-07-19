@@ -11,23 +11,28 @@ log.basicConfig(filename='logs/mine.log',
                 format='%(levelname)s >> %(message)s')
 
 def printExit():
-  print('')
+    print('')
 
 def printHeader(text):
-  printExit()
-  print(text)
-  print('')
+    printExit()
+    print(text)
+    print('')
 
-printHeader('Field example')
+
 f = fi.Field()
-f.printMap()
+c = co.Combat([un.Unit('Mech', auto=False)], [un.Unit('Drone'),
+                                              un.Unit('Drone')])
 
-printHeader('Combat example')
-c = co.Combat([un.Unit('Mech')], [un.Unit('Drone'), un.Unit('Drone')])
-c.printStatus()
-c.printCommands(un.Unit('Mech'))
-inf.printPrompt()
+if False:
+    printHeader('Field example')
+    f.printMap()
 
-printExit()
+    printHeader('Combat example')
+    c.printStatus()
+    c.printCommands(un.Unit('Mech'))
+
+printHeader('Interactive Combat Test')
+c.run()
+
 printExit()
 

@@ -7,8 +7,16 @@
 import logging as log
 
 # Module imports.
+from utils.exceptions import CombatException
 import combat.timer as timer
+import combat.unit as unit
 import display.interface as intface
+
+# Combat results.
+LOSS = 1
+VICTORY = 2
+
+LIST_LIMIT = 4
 
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
@@ -28,6 +36,64 @@ class Combat:
                                                entry.speed,
                                                recurring=True))
 
+    def run(self):
+        """Runs a combat"""
+        log.info('Running commbat')
+
+        while (len(self.units) > 0) and (len(self.hostiles) > 0):
+            nextEvent = self.spin()
+            log.debug('Next event: %s' % nextEvent)
+
+            intface.printRefresh()
+            intface.printSpacer()
+            intface.printBlank()
+            self.printStatus()
+            intface.printBlank()
+            self.printOrder()
+            intface.printBlank()
+            intface.printSpacer()
+
+            #------------------------------------------------------------------
+            # For units we let them handle an action.
+            #------------------------------------------------------------------
+            if isinstance(nextEvent.subject, unit.Unit):
+                log.debug('Next event is a unit')
+                if nextEvent.subject in self.units:
+                    log.debug('Next event is a friendly unit')
+                    nextEvent.subject.turn(self.units,
+                                           self.hostiles)
+                elif nextEvent.subject in self.hostiles:
+                    log.debug('Next event is a hostile unit')
+                    nextEvent.subject.turn(self.units,
+                                           self.hostiles,
+                                           user=True)
+                else:
+                    log.error('Unrecognised unit found in combat')
+                    log.debug('Unit: %s - %s' % (nextEvent.subject.name,
+                                                 nextEvent.subject))
+                    raise CombatException
+
+            #------------------------------------------------------------------
+            # For events trigger the event action.
+            #------------------------------------------------------------------
+            else:
+                log.debug('Next event is not a unit')
+                raise CombatException
+                # General event handling not yet implemented
+
+        #----------------------------------------------------------------------
+        # Determine if a combat is finished.
+        #----------------------------------------------------------------------
+        if len(self.units) is 0:
+            return LOSS
+        elif len(self.hostiles is 0):
+            return VICTORY
+
+    def activelist(self):
+        """Returns the active combatlist"""
+        return (self.combatList[self.nextActive:] +
+                self.combatList[:self.nextActive])
+
     def spin(self):
         """Cycle the combat to the next action"""
         log.debug('Spinning cycle')
@@ -37,8 +103,7 @@ class Combat:
         # For safety ensure we find a result within 500 cycles.
         #----------------------------------------------------------------------
         while cycles < 500:
-            for event in (self.combatList[self.nextActive:] +
-                          self.combatList[:self.nextActive]):
+            for event in self.activelist():
                 log.debug('Checking %s' % event)
                 result = event.checkValid()
 
@@ -50,23 +115,25 @@ class Combat:
 
                     if self.nextActive > len(self.combatList):
                         self.nextActive = 0
-                    return event.subject
+                    return event
 
             cycles += 1
-        raise Exception
+        log.error('Cycle span for too long without a result')
+        raise CombatException
 
+    #--------------------------------------------------------------------------
+    # Combat display handling.
+    #--------------------------------------------------------------------------
     def printStatus(self):
         """Prints the combat status display"""
         log.debug('Printing combat status')
 
-        intface.printSpacer()
-        intface.printBlank()
-
         def singleEntry(entry):
-            return("""%s: %d/%d\n  Status: OK""" %
+            return("""%s: %d/%d\n  Status: %s""" %
                                                   ('{:<15}'.format(entry.name),
                                                    entry.hitpoints.getValue(),
-                                                   entry.hitpoints.maximum))
+                                                   entry.hitpoints.maximum,
+                                                   entry.state()))
 
         def displayEntries(entries):
             maxNum = len(entries)
@@ -77,17 +144,31 @@ class Combat:
                 intface.printTwoColumns(singleEntry(entries[maxNum - 1]),
                                         '')
 
+        intface.printText('-- Allied units  --')
         displayEntries(self.units)
         intface.printBlank()
+        intface.printText('-- Hostile units --')
         displayEntries(self.hostiles)
 
-        intface.printBlank()
+    def printOrder(self):
+        """Prints the upcoming combat order"""
+        log.debug('Printing combat order')
+
+        numToPrint = len(self.units + self.hostiles)
+        if numToPrint > LIST_LIMIT:
+            log.debug('Limit combat list to next four units')
+            numToPrint = LIST_LIMIT
+
+        if numToPrint > len(self.activelist()):
+            raise CombatException
+
+        intface.printText('Upcoming turns:')
+        intface.printText('  ' + ', '.join([entry.subject.name for entry in
+                                            self.activelist()[:numToPrint]]))
 
     def printCommands(self, unit):
         """Prints commands available for the next turn"""
         log.debug('Printing commands for %s' % unit.name)
 
-        intface.printSpacer()
         intface.printText('Available actions for %s:' % unit.name)
         intface.printText('  %s' % unit.listCommands())
-        intface.printSpacer()

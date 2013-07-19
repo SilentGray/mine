@@ -6,15 +6,22 @@
 # Python imports
 import logging as log
 import configparser
+import random
 
 # Modules imports
+from utils.exceptions import UnitException
+from display.interface import userInput
 import utils.counter as counter
 import combat.command as command
+
+# Status.
+OK = 'OK'
+DEAD = 'Dead'
 
 class Unit:
     """Class for handling and manipulating combat units"""
 
-    def __init__(self, inputId):
+    def __init__(self, inputId, auto=True):
         """Initialises a new combat unit"""
         log.debug('New Combat Unit, ID: %s' % inputId)
 
@@ -25,7 +32,7 @@ class Unit:
 
         if self.unitId not in config.sections():
             log.error('Invalid unit ID: %s' % self.unitId)
-            raise Exception
+            raise UnitException
 
         def getConfig(field):
             return config.get(self.unitId, field)
@@ -33,6 +40,9 @@ class Unit:
         self.name = getConfig('name')
         self.speed = int(getConfig('speed'))
         self.hitpoints = counter.Counter(int(getConfig('hitpoints')))
+
+        # Whether the unit is automatic, or user-controlled.
+        self.auto = auto
 
         # Setup a list of commands the unit can use.
         self._generate_commands(getConfig('commands').split(','))
@@ -45,6 +55,31 @@ class Unit:
         for entry in entries:
             newCommand = command.Command(entry)
             self.commands.append(newCommand)
+
+    def turn(self, allies, hostiles, user=False):
+        """Unit takes a turn"""
+        log.debug('Turn from %s next' % self.name)
+
+        choice = self.getChoice()
+        targetChoice = self
+
+        if not choice.selfOnly:
+            log.debug('Prompting for a target')
+            targetChoice = choice.getTarget(allies,
+                                            hostiles,
+                                            auto=self.auto)
+
+        print('>>>   %s uses %s on %s.   <<<' % (self.name, choice.name, targetChoice.name))
+
+    def state(self):
+        """Returns the state of the unit"""
+        log.debug('Getting state for unit %s' % self.name)
+
+        if self.hitpoints.value == 0:
+            log.debug('Unit is dead')
+            return DEAD
+
+        return OK
 
     def kill(self):
         """Kill a unit"""
@@ -87,3 +122,14 @@ class Unit:
         """Returns commands available for a unit"""
         log.debug('Getting commands for %s' % self.name)
         return ', '.join([command.name for command in self.commands])
+
+    def getChoice(self):
+        """Gets an action for a turn"""
+        log.debug('Getting an action')
+
+        if self.auto:
+            log.debug('Unit is automated')
+            return random.choice(self.commands)
+
+        return userInput('Commands available to %s:' % self.name,
+                         [cmd for cmd in self.commands])

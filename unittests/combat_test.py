@@ -30,6 +30,9 @@ def getTestUnit():
 def getTestCombat():
     return combat.Combat([unit.Unit('Mech')], [unit.Unit('Drone')])
 
+def getTestCommand():
+    return command.Command('punch')
+
 class TestUnitModule(unittest.TestCase):
     """Unit tests for the unit module"""
 
@@ -105,6 +108,17 @@ class TestCombatModule(unittest.TestCase):
         soh.hideStdOut()
         newCombat.printCommands(getTestUnit())
         soh.restoreStdOut()
+
+    def testActionsDisplay(self):
+        """Test of displaying combat actions"""
+        log.info('Starting combat action display unit-test')
+
+        newCombat = getTestCombat()
+        newUnit = getTestUnit()
+        newCommand = getTestCommand()
+
+        soh.hideStdOut()
+        newCombat.printAction(newCommand, newUnit)
 
 class TestTimerModule(unittest.TestCase):
     """Unit tests for the timer module"""
