@@ -36,12 +36,66 @@ def getTestCommand():
 class TestUnitModule(unittest.TestCase):
     """Unit tests for the unit module"""
 
-    def testGetCommands(self):
-        """Test of retrieving commands from a unit"""
-        log.info('Starting unit commands unit-test')
+    def testUnitDisplay(self):
+        """Test of displaying unit information"""
+        log.info('Starting unit display unit-test')
 
         newUnit = getTestUnit()
         self.assertEqual(newUnit.listCommands(), 'punch, armour')
+
+        soh.hideStdOut()
+        # Unit must be automated or test will hang for user input.
+        self.assertTrue(newUnit.auto)
+        newUnit.getChoice()
+        soh.restoreStdOut()
+
+    def testUnitMortality(self):
+        """Unit test for testing unit mortality"""
+        log.info('Starting unit mortality unit-test')
+
+        newUnit = getTestUnit()
+
+        #----------------------------------------------------------------------
+        # Sets of actions.  Either a single action, or a list of actions.
+        #
+        # The second entry of the tuple is the expected end state.
+        #----------------------------------------------------------------------
+        actionSet = [(lambda: newUnit.kill(), unit.DEAD),
+                     (lambda: newUnit.damageFraction(1), unit.DEAD),
+                     (lambda: newUnit.damage(1), unit.OK),
+                     (lambda: newUnit.damage(999), unit.DEAD),
+                     ([lambda: newUnit.damage(1) for x in range(999)],
+                      unit.DEAD),
+                     ([lambda: newUnit.kill(),
+                       lambda: newUnit.heal(1)],
+                      unit.DEAD),
+                     ([lambda: newUnit.kill(),
+                       lambda: newUnit.healFraction(1)],
+                      unit.DEAD)]
+
+        for (action, state) in actionSet:
+            log.debug('Check action %d' % actionSet.index((action, state)))
+
+            # Ensure unit is in expected state.
+            newUnit.reset()
+            self.assertEqual(unit.OK, newUnit.state())
+
+            # Impact unit with action(s).
+            if isinstance(action, (list, tuple)):
+                log.debug('Do list of actions')
+                for act in action:
+                    log.debug('Do action: \'%d\'' % action.index(act))
+                    act()
+                    log.debug('State result: \'%s\'; health: \'%d\'' %
+                              (newUnit.state(), newUnit.hitpoints.value))
+            else:
+                log.debug('Do single action')
+                action()
+
+            # Test final state is as expected.
+            log.debug('State expected: \'%s\'; result: \'%s\'; health: \'%d\''%
+                      (state, newUnit.state(), newUnit.hitpoints.value))
+            self.assertEqual(state, newUnit.state())
 
     def testVerifyUnits(self):
         """Unit test to verify custom units"""
@@ -57,12 +111,19 @@ class TestCommandModule(unittest.TestCase):
 
     def testVerifyCommands(self):
         """Unit test to verify custom commands"""
-        log.info('Start custom command verification')
+        log.info('Starting custom command verification')
 
         allIds = testutils.getKeys('custom/command.ini')
         for thisId in allIds:
             log.info('Testing command, ID: %s' % thisId)
             self.assertTrue(command.Command(thisId))
+
+    def testGetTarget(self):
+        """Unit test for getting a target"""
+        log.info('Starting unit test for command targeting')
+
+        newCmd = getTestCommand()
+        newCmd.getTarget([getTestUnit()], [getTestUnit()], auto=True)
 
 class TestCombatModule(unittest.TestCase):
     """Unit tests for the combat module"""
@@ -80,45 +141,35 @@ class TestCombatModule(unittest.TestCase):
             return nextUnit
 
         firstUnit = assertNextCombat()
+        firstList = newCombat.activelist()
         secondUnit = assertNextCombat()
+        secondList = newCombat.activelist()
 
         self.assertNotEqual(firstUnit,
                             secondUnit,
                             'First two spins generated same unit')
+        self.assertNotEqual(firstList,
+                            secondList,
+                            'First two spins did not change activelist')
 
         # Brute force test.  Ensure we can spin the combat for a large number
         # of cycles.
         for ii in range (2, 500):
             assertNextCombat()
 
-    def testCombatStatus(self):
-        """Test of displaying combat status"""
+    def testCombatDisplay(self):
+        """Test of displaying combat information"""
         log.info('Starting combat status unit-test')
 
+
+        newUnit = getTestUnit()
         newCombat = getTestCombat()
+
         soh.hideStdOut()
         newCombat.printStatus()
+        newCombat.printOrder()
+        newCombat.printCommands(newUnit)
         soh.restoreStdOut()
-
-    def testCommandsDisplay(self):
-        """Test of displaying combat commands"""
-        log.info('Starting combat command display unit-test')
-
-        newCombat = getTestCombat()
-        soh.hideStdOut()
-        newCombat.printCommands(getTestUnit())
-        soh.restoreStdOut()
-
-    def testActionsDisplay(self):
-        """Test of displaying combat actions"""
-        log.info('Starting combat action display unit-test')
-
-        newCombat = getTestCombat()
-        newUnit = getTestUnit()
-        newCommand = getTestCommand()
-
-        soh.hideStdOut()
-        newCombat.printAction(newCommand, newUnit)
 
 class TestTimerModule(unittest.TestCase):
     """Unit tests for the timer module"""
@@ -142,6 +193,7 @@ class TestTimerModule(unittest.TestCase):
         for num in range(0, 10):
             log.debug('Cycle %d / 9' % num)
             for cycle in range(0, 3):
+                log.debug('Cycle %d' % cycle)
                 self.assertEqual(newTimer.checkValid(), timer.SILENT,
                                  'Timer popped when it should not have')
             self.assertEqual(newTimer.checkValid(), timer.POP,

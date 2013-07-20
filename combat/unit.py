@@ -69,7 +69,7 @@ class Unit:
                                             hostiles,
                                             auto=self.auto)
 
-        print('>>>   %s uses %s on %s.   <<<' % (self.name, choice.name, targetChoice.name))
+        # Do action.
 
     def state(self):
         """Returns the state of the unit"""
@@ -80,6 +80,12 @@ class Unit:
             return DEAD
 
         return OK
+
+    def canHeal(self):
+        """Determines if unit is in a healable state"""
+        result = (self.state() != DEAD)
+        log.debug('Checking if can heal, result: %s' % result)
+        return result
 
     def kill(self):
         """Kill a unit"""
@@ -92,7 +98,6 @@ class Unit:
         log.debug('Resetting unit %s' % self.name)
 
         self.hitpoints.reset()
-        self.speedCount.reset()
 
     def damage(self, amount):
         """Take set amount of damage"""
@@ -110,13 +115,15 @@ class Unit:
         """Heal a set amount"""
         log.debug('Unit %s heals %d' % (self.name, amount))
 
-        self.hitpoints.increase(amount)
+        if self.canHeal():
+            self.hitpoints.increase(amount)
 
     def healFraction(self, fraction):
         """Heal a fractional amount"""
         log.debug('Unit %s heals by fraction %d' % (self.name, fraction))
 
-        self.hitpoints.increaseFraction(fraction)
+        if self.canHeal():
+            self.hitpoints.increaseFraction(fraction)
 
     def listCommands(self):
         """Returns commands available for a unit"""

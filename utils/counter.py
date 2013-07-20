@@ -62,7 +62,7 @@ class Counter:
         """Minimise the counter"""
         log.debug('Minimise a counter.')
 
-        self.value = self.minimum()
+        self.value = self.minimum
 
     def reset(self):
         """Reset the counter"""
