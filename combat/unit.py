@@ -56,7 +56,7 @@ class Unit:
             newCommand = command.Command(entry)
             self.commands.append(newCommand)
 
-    def turn(self, allies, hostiles, user=False):
+    def turn(self, allies, hostiles):
         """Unit takes a turn"""
         log.debug('Turn from %s next' % self.name)
 

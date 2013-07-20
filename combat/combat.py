@@ -58,20 +58,7 @@ class Combat:
             #------------------------------------------------------------------
             if isinstance(nextEvent.subject, unit.Unit):
                 log.debug('Next event is a unit')
-                if nextEvent.subject in self.units:
-                    log.debug('Next event is a friendly unit')
-                    nextEvent.subject.turn(self.units,
-                                           self.hostiles)
-                elif nextEvent.subject in self.hostiles:
-                    log.debug('Next event is a hostile unit')
-                    nextEvent.subject.turn(self.units,
-                                           self.hostiles,
-                                           user=True)
-                else:
-                    log.error('Unrecognised unit found in combat')
-                    log.debug('Unit: %s - %s' % (nextEvent.subject.name,
-                                                 nextEvent.subject))
-                    raise CombatException
+                nextEvent.subject.turn(self.units, self.hostiles)
 
             #------------------------------------------------------------------
             # For events trigger the event action.
