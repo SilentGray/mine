@@ -14,7 +14,8 @@ sys.path.append('.')
 import combat.combat as combat
 import combat.unit as unit
 import combat.command as command
-import combat.timer as timer
+import combat.event as event
+import combat.team as team
 import unittests.testutils.testutils as testutils
 
 log.basicConfig(filename='logs/combattests.log',
@@ -25,10 +26,11 @@ log.basicConfig(filename='logs/combattests.log',
 soh = testutils.StdOutHandler()
 
 def getTestUnit():
-    return unit.Unit('Mech')
+    return unit.Unit('Mech', 'rebels')
 
 def getTestCombat():
-    return combat.Combat([unit.Unit('Mech')], [unit.Unit('Drone')])
+    return combat.Combat([unit.Unit('Mech', 'rebels'),
+                          unit.Unit('Drone', 'autoarmy')])
 
 def getTestCommand():
     return command.Command('punch')
@@ -104,7 +106,7 @@ class TestUnitModule(unittest.TestCase):
         allIds = testutils.getKeys('custom/unit.ini')
         for thisId in allIds:
             log.info('Testing unit, ID: %s' % thisId)
-            self.assertTrue(unit.Unit(thisId))
+            self.assertTrue(unit.Unit(thisId, 'rebels'))
 
 class TestCommandModule(unittest.TestCase):
     """Unit tests for the command module"""
@@ -124,6 +126,17 @@ class TestCommandModule(unittest.TestCase):
 
         newCmd = getTestCommand()
         newCmd.getTarget([getTestUnit()], [getTestUnit()], auto=True)
+
+class TestTeamModule(unittest.TestCase):
+    """Unit tests for the team module"""
+
+    def testVerifyTeams(self):
+        log.info('Starting custom team verification')
+
+        allIds = testutils.getKeys('custom/team.ini')
+        for thisId in allIds:
+            log.info('Testing team, ID: %s' % thisId)
+            self.assertTrue(team.Team(thisId))
 
 class TestCombatModule(unittest.TestCase):
     """Unit tests for the combat module"""
@@ -178,8 +191,8 @@ class TestTimerModule(unittest.TestCase):
         """Test of combat timer initiation"""
         log.info('Starting combat timer initiation')
 
-        newTimer = timer.Timer(None, 0)
-        self.assertTrue(newTimer, 'Failed to initialize new timer')
+        newEvent = event.Event(None, 0)
+        self.assertTrue(newEvent, 'Failed to initialize new event')
 
     def testTimerExpiry(self):
         """Test of combat timer expiry"""
@@ -188,31 +201,32 @@ class TestTimerModule(unittest.TestCase):
         #----------------------------------------------------------------------
         # Test that a recurring timer reoccurs repeatedly.
         #----------------------------------------------------------------------
-        newTimer = timer.Timer(None, 4, recurring=True)
+        newEvent = event.Event(None, 4, recurring=True)
 
         for num in range(0, 10):
             log.debug('Cycle %d / 9' % num)
             for cycle in range(0, 3):
                 log.debug('Cycle %d' % cycle)
-                self.assertEqual(newTimer.checkValid(), timer.SILENT,
+                self.assertEqual(newEvent.checkValid(), event.SILENT,
                                  'Timer popped when it should not have')
-            self.assertEqual(newTimer.checkValid(), timer.POP,
+            self.assertEqual(newEvent.checkValid(), event.POP,
                             'Timer did not pop when it should have')
 
         #----------------------------------------------------------------------
         # Test that a non-recurring timer disappears.
         #----------------------------------------------------------------------
-        newTimer = timer.Timer(None, 4)
+        newEvent = event.Event(None, 4)
 
         for num in range(0, 3):
-            self.assertEqual(newTimer.checkValid(), timer.SILENT,
+            self.assertEqual(newEvent.checkValid(), event.SILENT,
                              'Timer popped when it should not have')
-        self.assertEqual(newTimer.checkValid(), timer.POP_DIE,
+        self.assertEqual(newEvent.checkValid(), event.POP_DIE,
                         'Timer did not pop and die when it should have')
 
 if __name__ == "__main__":
     for testClass in [TestCombatModule,
                       TestCommandModule,
+                      TestTeamModule,
                       TestUnitModule,
                       TestTimerModule]:
         suite = unittest.TestLoader().loadTestsFromTestCase(testClass)

@@ -20,8 +20,9 @@ def printHeader(text):
 
 
 f = fi.Field()
-c = co.Combat([un.Unit('Mech', auto=False)], [un.Unit('Drone'),
-                                              un.Unit('Drone')])
+c = co.Combat([un.Unit('Mech', 'rebels', auto=False),
+               un.Unit('Drone', 'autoarmy'),
+               un.Unit('Drone', 'autoarmy')])
 
 if False:
     printHeader('Field example')
@@ -29,7 +30,7 @@ if False:
 
     printHeader('Combat example')
     c.printStatus()
-    c.printCommands(un.Unit('Mech'))
+    c.printCommands(un.Unit('Mech', 'rebels'))
 
 printHeader('Interactive Combat Test')
 c.run()

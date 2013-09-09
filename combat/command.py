@@ -62,7 +62,7 @@ class Command:
         if self.expiry:
             self.expiryDescription = getConfig('expiry_description')
 
-    def getTarget(self, allies, hostiles, auto=False):
+    def getTarget(self, targets, allies, auto=False):
         """Gets a target for an action"""
         log.debug('Getting a target')
 
@@ -70,9 +70,11 @@ class Command:
             log.debug('Unit is automated')
 
             if self.offensive:
-                return random.choice(allies)
+                return random.choice([unit for unit in targets
+                                      if unit.team.name not in allies])
             else:
-                return random.choice(hostiles)
+                return random.choice([unit for unit in targets
+                                      if unit.team.name in allies])
 
         return userInput('Targets available for action:',
-                         [act for act in (allies + hostiles)])
+                         [act for act in (targets)])

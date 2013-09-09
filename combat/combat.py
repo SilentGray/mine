@@ -8,7 +8,7 @@ import logging as log
 
 # Module imports.
 from utils.exceptions import CombatException
-import combat.timer as timer
+import combat.event as event
 import combat.unit as unit
 import display.interface as intface
 
@@ -21,26 +21,23 @@ LIST_LIMIT = 4
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
 
-    def __init__(self, units, hostiles):
+    def __init__(self, units):
         """Initialises a new combat"""
         log.debug('Initialise a new combat')
 
         self.units = units
-        self.hostiles = hostiles
         self.nextActive = 0
 
         self.combatList = []
-        for entry in self.units + self.hostiles:
+        for entry in self.units:
             log.debug('Adding %s to combat-list.' % entry)
-            self.combatList.append(timer.Timer(entry,
-                                               entry.speed,
-                                               recurring=True))
+            self.combatList.append(entry)
 
     def run(self):
         """Runs a combat"""
         log.info('Running commbat')
 
-        while (len(self.units) > 0) and (len(self.hostiles) > 0):
+        while (len(self.units) > 0):
             nextEvent = self.spin()
             log.debug('Next event: %s' % nextEvent)
 
@@ -48,33 +45,22 @@ class Combat:
             intface.printSpacer()
             intface.printBlank()
             self.printStatus()
-            intface.printBlank()
             self.printOrder()
             intface.printBlank()
             intface.printSpacer()
 
-            #------------------------------------------------------------------
-            # For units we let them handle an action.
-            #------------------------------------------------------------------
-            if isinstance(nextEvent.subject, unit.Unit):
-                log.debug('Next event is a unit')
-                nextEvent.subject.turn(self.units, self.hostiles)
+            nextEvent.turn(self.units)
 
-            #------------------------------------------------------------------
-            # For events trigger the event action.
-            #------------------------------------------------------------------
-            else:
-                log.debug('Next event is not a unit')
-                raise CombatException
-                # General event handling not yet implemented
+            #----------------------------------------------------------------------
+            # Determine if a combat is finished.
+            #----------------------------------------------------------------------
+            if len(self.units) is 0:
+                return LOSS
 
         #----------------------------------------------------------------------
-        # Determine if a combat is finished.
+        # Unexpected exit of run function.
         #----------------------------------------------------------------------
-        if len(self.units) is 0:
-            return LOSS
-        elif len(self.hostiles is 0):
-            return VICTORY
+        raise CombatException('Unexpected exit of running combat')
 
     def activelist(self):
         """Returns the active combatlist"""
@@ -90,19 +76,19 @@ class Combat:
         # For safety ensure we find a result within 500 cycles.
         #----------------------------------------------------------------------
         while cycles < 500:
-            for event in self.activelist():
+            for action in self.activelist():
                 log.debug('Checking %s' % event)
-                result = event.checkValid()
+                result = action.checkValid()
 
-                if result is not timer.SILENT:
-                    log.debug('Found next event: %s' % event)
-                    if result is timer.POP_DIE:
-                        self.combatList.remove(event)
-                    self.nextActive = self.combatList.index(event) + 1
+                if result is not event.SILENT:
+                    log.debug('Found next event: %s' % action)
+                    if result is event.POP_DIE:
+                        self.combatList.remove(action)
+                    self.nextActive = self.combatList.index(action) + 1
 
                     if self.nextActive > len(self.combatList):
                         self.nextActive = 0
-                    return event
+                    return action
 
             cycles += 1
         log.error('Cycle span for too long without a result')
@@ -131,17 +117,23 @@ class Combat:
                 intface.printTwoColumns(singleEntry(entries[maxNum - 1]),
                                         '')
 
-        intface.printText('-- Allied units  --')
-        displayEntries(self.units)
-        intface.printBlank()
-        intface.printText('-- Hostile units --')
-        displayEntries(self.hostiles)
+        toDisplay = {}
+        for unit in self.units:
+            if unit.team.name not in toDisplay.keys():
+                toDisplay[unit.team.name] = []
+
+            toDisplay[unit.team.name].append(unit)
+
+        for team in toDisplay.keys():
+            intface.printText('-- %s --' % team)
+            displayEntries(toDisplay[team])
+            intface.printBlank()
 
     def printOrder(self):
         """Prints the upcoming combat order"""
         log.debug('Printing combat order')
 
-        numToPrint = len(self.units + self.hostiles)
+        numToPrint = len([un for un in self.units if un.state() != unit.DEAD])
         if numToPrint > LIST_LIMIT:
             log.debug('Limit combat list to next four units')
             numToPrint = LIST_LIMIT
@@ -150,7 +142,7 @@ class Combat:
             raise CombatException
 
         intface.printText('Upcoming turns:')
-        intface.printText('  ' + ', '.join([entry.subject.name for entry in
+        intface.printText('  ' + ', '.join([entry.name for entry in
                                             self.activelist()[:numToPrint]]))
 
     def printCommands(self, unit):

@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------------- 
-# Module: Timer
+# Module: Event
 #-----------------------------------------------------------------------------
-"""Contains class information on combat timers"""
+"""Contains class information on combat events"""
 
 # Python imports.
 import logging as log
@@ -14,20 +14,20 @@ SILENT = 0
 POP = 1
 POP_DIE = 2
 
-class Timer:
-    """Class for managing combat timers"""
+class Event:
+    """Class for managing combat events"""
 
-    def __init__(self, objt, count, recurring=False):
-        """Initialise a new timer"""
-        log.debug('Initializing new timer %s' % self)
+    def __init__(self, action, count, recurring=False):
+        """Initialise a new event"""
+        log.debug('Initializing new event %s' % self)
 
         self.time = counter.Counter(count)
-        self.subject = objt
+        self.action = action
         self.recurring = recurring
 
     def expire(self):
-        """Behaviour when a timer expires"""
-        log.debug('Timer %s expired' % self)
+        """Behaviour when a event expires"""
+        log.debug('Event %s expired' % self)
 
         if self.recurring:
             self.time.reset()
@@ -36,10 +36,16 @@ class Timer:
             return POP_DIE
 
     def checkValid(self):
-        """Reduce and check the timer"""
-        log.debug('Checking timer %s' % self)
+        """Reduce and check the event timer"""
+        log.debug('Checking event timer %s' % self)
 
         self.time.reduce(1)
         if self.time.getValue() is 0:
             return self.expire()
         return SILENT
+
+    def turn(self, targets):
+        """Executes the action of the event"""
+        log.debug('Triggering action')
+
+        # Do action.
