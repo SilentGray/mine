@@ -22,3 +22,6 @@ class InterfaceException(Exception):
 
 class ConfigException(Exception):
     pass
+
+class ActionException(Exception):
+    pass
