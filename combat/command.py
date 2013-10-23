@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------------- 
-# Module: Commands
+# Module: Command
 #-----------------------------------------------------------------------------
 """Contains class information on unit commands"""
 
@@ -11,18 +11,10 @@ import random
 # Module imports.
 from utils.exceptions import CommandException
 from utils.config import getBool
+from combat.action import Action
 from display.interface import userInput
 
-#------------------------------------------------------------------------------
-# We support a number of potential action types.
-#    'impact'     - Direct impact on a units health (damage or
-#                   healing).
-#    'boost'      - Direct impact on a units stat.
-#------------------------------------------------------------------------------
-IMPACT = 'impact'
-BOOST = 'boost'
-
-class Command:
+class Command(Action):
     """Class for handling and manipulating unit commands"""
 
     def __init__(self, inputId):
@@ -44,13 +36,6 @@ class Command:
         self.name = getConfig('name')
         self.description = getConfig('description')
 
-        self.actionType = getConfig('type')
-        if self.actionType not in [IMPACT, BOOST]:
-            log.error('Unrecognised action type: %s' % self.actionType)
-            raise CommandException
-
-        self.amount = int(getConfig('amount'))
-
         self.selfOnly = getBool(getConfig('self'))
         self.offensive = getBool(getConfig('offensive'))
 
@@ -61,6 +46,10 @@ class Command:
         self.expiry = int(getConfig('expiry'))
         if self.expiry:
             self.expiryDescription = getConfig('expiry_description')
+
+        actionType = getConfig('type')
+        amount = int(getConfig('amount'))
+        Action.__init__(self, actionType, amount)
 
     def getTarget(self, targets, allies, auto=False):
         """Gets a target for an action"""

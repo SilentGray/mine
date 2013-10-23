@@ -11,11 +11,13 @@ import sys
 sys.path.append('.')
 
 # Module imports.
+import combat.action as action
 import combat.combat as combat
 import combat.unit as unit
 import combat.command as command
 import combat.event as event
 import combat.team as team
+import utils.exceptions as exceptions
 import unittests.testutils.testutils as testutils
 
 log.basicConfig(filename='logs/combattests.log',
@@ -184,6 +186,18 @@ class TestCombatModule(unittest.TestCase):
         newCombat.printCommands(newUnit)
         soh.restoreStdOut()
 
+class TestActionModule(unittest.TestCase):
+    """Unit tests for the action module"""
+
+    def testActionTypes(self):
+        """Test action type verification"""
+        log.info('Starting action type verification')
+
+        self.assertTrue(action.Action(action.IMPACT))
+        self.assertTrue(action.Action(action.BOOST))
+        self.assertRaises(exceptions.ActionException,
+                          action.Action, 'garbageactiontype')
+
 class TestTimerModule(unittest.TestCase):
     """Unit tests for the timer module"""
 
@@ -228,6 +242,7 @@ if __name__ == "__main__":
                       TestCommandModule,
                       TestTeamModule,
                       TestUnitModule,
+                      TestActionModule,
                       TestTimerModule]:
         suite = unittest.TestLoader().loadTestsFromTestCase(testClass)
         unittest.TextTestRunner(verbosity=3).run(suite)

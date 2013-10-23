@@ -83,6 +83,10 @@ class Unit(event.Event):
                                             auto=self.auto)
 
         # Do action.
+        log.info('%s uses %s on %s' % (self.name,
+                                       choice.name,
+                                       targetChoice.name))
+        choice.doAction(targetChoice)
 
     def state(self):
         """Returns the state of the unit"""
