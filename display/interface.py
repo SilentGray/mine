@@ -1,7 +1,14 @@
 #-----------------------------------------------------------------------------
 # Module: Interface
 #-----------------------------------------------------------------------------
-"""Module for handling interfaces"""
+"""Module for handling interfaces
+
+This handles the output we recieve from Mine.  This means handling the
+formatting of the output in both form and colours.
+
+This will eventually support 8 and 256 colours, but for now only 256-colours
+have been implemented.
+"""
 
 # Python imports.
 import logging as log
@@ -9,16 +16,86 @@ import logging as log
 # Module imports.
 from utils.exceptions import InterfaceException
 
+class InvalidColours(InterfaceException):
+    pass
+
+INVALID_COLOUR_VALUE = 'Attempted to set colour %d, only %d available.'
+
+# What colours to use for what.
+# Use 256-colours and ANSI escape codes.
+BACK_NORM=234
+BACK_HIGHLIGHT=244
+FORE_NORM=251
+FORE_SUBDUED=242
+FORE_HIGHLIGHT=196
+
+# What symbols to use for what.
 PROMPT = '>>  '
 EDGE = '|'
 SEPERATOR = '-'
 BLANK = ' '
 
+# Colour application.
+def colour_8(value, back):
+    """Sets a 8-colour value.  Sets text colour, or background colour."""
+    if value >= 8:
+        raise InvalidColours(INVALID_COLOUR_VALUE % (value, 8))
+    if back:
+        key = 4
+    else:
+        key = 3
+    return('\033[%d%dm' % (key, value))
+
+def colour_256(value, back):
+    """Sets a 256-colour value.  Sets text colour, or background colour."""
+    if value >= 256:
+        raise InvalidColours(INVALID_COLOUR_VALUE % (value, 256))
+    if back:
+        key = 48
+    else:
+        key = 38
+    return('\033[%d;05;%dm' % (key, value))
+
+def applyColour(value, back=False):
+    """Sets a colour, accomodating for colours available."""
+    log.debug('Apply colour: %d' % value)
+    return(colour_256(value, back))
+
+def applyColours(fore_col, back_col):
+    """Sets both fore and background colours."""
+    log.debug('Apply colours: Fore=%d, Back=%d' % (fore_col, back_col))
+    return(applyColour(fore_col, False) + applyColour(back_col, True))
+
+def setSubduedColours():
+    """Resets the text and background colours to subdued."""
+    log.debug('Apply colours: Set subdued colours.')
+    return(applyColours(FORE_SUBDUED, BACK_NORM))
+
+def resetColours():
+    """Resets the text and background colours to default."""
+    log.debug('Apply colours: Set default formatting.')
+    return(applyColours(FORE_NORM, BACK_NORM))
+
+def cleanColours():
+    """Removes all formatting."""
+    log.debug('Apply colours: Remove text formatting.')
+    return('\033[0m')
+
+# Format definitions.
+LINE_START = (setSubduedColours() + EDGE + resetColours())
+LINE_END = (setSubduedColours() + EDGE)
+
+def printLine(line):
+    """Prints the line and handles edge formatting."""
+    print(LINE_START + line + LINE_END)
+
+def printRefresh():
+    """Print to clear the screen and reset cursor."""
+    return('\033[2J\033[h')
 
 def printSpacer():
     """Prints a single spacer line"""
-    print(EDGE + ('{:%s^78}' % SEPERATOR).format('') + EDGE)
-
+    printLine(setSubduedColours() + ('{:%s^78}' % SEPERATOR).format(''))
 
 def printText(text):
     """Prints a single block of text"""
@@ -27,11 +104,9 @@ def printText(text):
               ('{:%s<74}' % BLANK).format(line) +
               BLANK * 2 + EDGE)
 
-
 def printBlank():
     """Prints a blank line"""
     print(EDGE + ('{:%s^78}' % BLANK).format('') + EDGE)
-
 
 def printRefresh():
     """Print alot, to clear the terminal"""
@@ -59,7 +134,6 @@ def printTwoColumns(text1, text2):
               4 * BLANK + ('{:%s<35}' % BLANK).format(string2) +
               2 * BLANK + EDGE)
 
-
 def userInput(promptText, options):
     """Gets a users choice for an action"""
     log.debug('Get choice for action')
@@ -86,7 +160,11 @@ def userInput(promptText, options):
 
 def _getInput():
     """Gets input"""
-    response = input(EDGE + 2 * BLANK + PROMPT)
+    response = input(LINE_START +
+                     2*BLANK +
+                     setSubduedColours() +
+                     PROMPT +
+                     resetColours())
     response = response.strip()
     log.debug('Got user input: \'%s\'' % response)
     return response
