@@ -27,7 +27,7 @@ BACK_NORM=234
 BACK_HIGHLIGHT=244
 FORE_NORM=251
 FORE_SUBDUED=242
-FORE_HIGHLIGHT=196
+FORE_HIGHLIGHT=255
 
 # What symbols to use for what.
 PROMPT = '>>  '
@@ -36,6 +36,10 @@ SEPERATOR = '-'
 BLANK = ' '
 
 # Colour application.
+def bold():
+    """Sets the font to be bold."""
+    return('\033[1m')
+
 def colour_8(value, back):
     """Sets a 8-colour value.  Sets text colour, or background colour."""
     if value >= 8:
@@ -66,7 +70,13 @@ def applyColours(fore_col, back_col):
     log.debug('Apply colours: Fore=%d, Back=%d' % (fore_col, back_col))
     return(applyColour(fore_col, False) + applyColour(back_col, True))
 
-def setSubduedColours():
+def hightlitColours(fore_col=FORE_HIGHLIGHT, back_col=BACK_NORM):
+    """Sets text and background colours and applies a bold font."""
+    log.debug('Apply colours: Set highlighted colours; Fore=%d, Back=%d' %
+              (fore_col, back_col))
+    return(bold() + applyColours(fore_col, back_col))
+
+def subduedColours():
     """Resets the text and background colours to subdued."""
     log.debug('Apply colours: Set subdued colours.')
     return(applyColours(FORE_SUBDUED, BACK_NORM))
@@ -82,8 +92,8 @@ def cleanColours():
     return('\033[0m')
 
 # Format definitions.
-LINE_START = (setSubduedColours() + EDGE + resetColours())
-LINE_END = (setSubduedColours() + EDGE)
+LINE_START = (subduedColours() + EDGE + resetColours())
+LINE_END = (subduedColours() + EDGE)
 
 def printLine(line):
     """Prints the line and handles edge formatting."""
@@ -95,7 +105,7 @@ def printRefresh():
 
 def printSpacer():
     """Prints a single spacer line"""
-    printLine(setSubduedColours() + ('{:%s^78}' % SEPERATOR).format(''))
+    printLine(subduedColours() + ('{:%s^78}' % SEPERATOR).format(''))
 
 def printText(text):
     """Prints a single block of text"""
@@ -162,7 +172,7 @@ def _getInput():
     """Gets input"""
     response = input(LINE_START +
                      2*BLANK +
-                     setSubduedColours() +
+                     subduedColours() +
                      PROMPT +
                      resetColours())
     response = response.strip()
