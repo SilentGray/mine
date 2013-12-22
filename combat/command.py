@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: Command
 #-----------------------------------------------------------------------------
 """Contains class information on unit commands"""
@@ -13,6 +13,7 @@ from utils.exceptions import CommandException
 from utils.config import getBool
 from combat.action import Action
 from display.interface import userInput
+
 
 class Command(Action):
     """Class for handling and manipulating unit commands"""

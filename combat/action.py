@@ -26,6 +26,7 @@ from utils.exceptions import ActionException
 IMPACT = 'impact'
 BOOST = 'boost'
 
+
 class Action:
     """Class for manipulating and handling combat actions."""
 

@@ -18,6 +18,7 @@ VICTORY = 2
 
 LIST_LIMIT = 4
 
+
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
 
@@ -51,9 +52,9 @@ class Combat:
 
             nextEvent.turn(self.units)
 
-            #----------------------------------------------------------------------
+            #------------------------------------------------------------------
             # Determine if a combat is finished.
-            #----------------------------------------------------------------------
+            #------------------------------------------------------------------
             if len(self.units) is 0:
                 return LOSS
 
@@ -103,14 +104,14 @@ class Combat:
 
         def singleEntry(entry):
             return("""%s: %d/%d\n  Status: %s""" %
-                                                  ('{:<15}'.format(entry.name),
-                                                   entry.hitpoints.getValue(),
-                                                   entry.hitpoints.maximum,
-                                                   entry.state()))
+                   ('{:<15}'.format(entry.name),
+                    entry.hitpoints.getValue(),
+                    entry.hitpoints.maximum,
+                    entry.state()))
 
         def displayEntries(entries):
             maxNum = len(entries)
-            for num in range(0, int(maxNum/2)):
+            for num in range(0, int(maxNum / 2)):
                 intface.printTwoColumns(singleEntry(entries[num]),
                                         singleEntry(entries[num + 1]))
             if (maxNum % 2) is 1:
@@ -118,11 +119,11 @@ class Combat:
                                         '')
 
         toDisplay = {}
-        for unit in self.units:
-            if unit.team.name not in toDisplay.keys():
-                toDisplay[unit.team.name] = []
+        for unt in self.units:
+            if unt.team.name not in toDisplay.keys():
+                toDisplay[unt.team.name] = []
 
-            toDisplay[unit.team.name].append(unit)
+            toDisplay[unt.team.name].append(unt)
 
         for team in toDisplay.keys():
             intface.printText('-- %s --' % team)

@@ -1,10 +1,11 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: Counter
 #-----------------------------------------------------------------------------
 """Contains root class for handling counters"""
 
 # Python imports
 import logging as log
+
 
 class Counter:
     """Class for handling and manipulating counters"""

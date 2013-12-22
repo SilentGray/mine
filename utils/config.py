@@ -7,6 +7,7 @@
 from utils.exceptions import ConfigException
 import logging as log
 
+
 def getBool(value):
     """Converts a config entry into a boolean"""
     if value.lower() == 'true':

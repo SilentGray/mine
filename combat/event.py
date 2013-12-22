@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: Event
 #-----------------------------------------------------------------------------
 """Contains class information on combat events"""
@@ -13,6 +13,7 @@ import utils.counter as counter
 SILENT = 0
 POP = 1
 POP_DIE = 2
+
 
 class Event:
     """Class for managing combat events"""

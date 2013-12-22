@@ -20,6 +20,7 @@ import combat.team as team
 OK = 'OK'
 DEAD = 'Dead'
 
+
 class Unit(event.Event):
     """Class for handling and manipulating combat units"""
 

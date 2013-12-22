@@ -1,6 +1,6 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: Interface
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 """Module for handling interfaces"""
 
 # Python imports.
@@ -14,24 +14,29 @@ EDGE = '|'
 SEPERATOR = '-'
 BLANK = ' '
 
+
 def printSpacer():
     """Prints a single spacer line"""
     print(EDGE + ('{:%s^78}' % SEPERATOR).format('') + EDGE)
 
+
 def printText(text):
     """Prints a single block of text"""
     for line in text.split('\n'):
-        print(EDGE + BLANK*2 +
+        print(EDGE + BLANK * 2 +
               ('{:%s<74}' % BLANK).format(line) +
-              BLANK*2 + EDGE)
+              BLANK * 2 + EDGE)
+
 
 def printBlank():
     """Prints a blank line"""
     print(EDGE + ('{:%s^78}' % BLANK).format('') + EDGE)
 
+
 def printRefresh():
     """Print alot, to clear the terminal"""
-    print(79*'\n')
+    print(79 * '\n')
+
 
 def printTwoColumns(text1, text2):
     """Prints two columns of text side-by-side"""
@@ -50,8 +55,10 @@ def printTwoColumns(text1, text2):
         else:
             string2 = ''
 
-        print(EDGE + 2*BLANK + ('{:%s<35}' % BLANK).format(string1) +
-              4*BLANK + ('{:%s<35}' % BLANK).format(string2) + 2*BLANK + EDGE)
+        print(EDGE + 2 * BLANK + ('{:%s<35}' % BLANK).format(string1) +
+              4 * BLANK + ('{:%s<35}' % BLANK).format(string2) +
+              2 * BLANK + EDGE)
+
 
 def userInput(promptText, options):
     """Gets a users choice for an action"""
@@ -61,7 +68,7 @@ def userInput(promptText, options):
     while not choice:
         # Get user choice.
         printText('\n'.join([promptText,
-                            '  '+ ', '.join([o.name for o in options])]))
+                            '  ' + ', '.join([o.name for o in options])]))
         choice = _getInput()
 
         for option in options:
@@ -76,8 +83,9 @@ def userInput(promptText, options):
     log.error('No valid option returned from user input: %s' % choice)
     raise InterfaceException
 
+
 def _getInput():
     """Gets input"""
-    response = input(EDGE + 2*BLANK + PROMPT)
+    response = input(EDGE + 2 * BLANK + PROMPT)
     log.debug('Got user input: \'%s\'' % response)
     return response

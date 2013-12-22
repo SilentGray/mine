@@ -3,15 +3,16 @@ import logging as log
 import maps.field as fi
 import combat.combat as co
 import combat.unit as un
-import display.interface as inf
 
 log.basicConfig(filename='logs/mine.log',
                 level=log.DEBUG,
                 filemode='w',
                 format='%(levelname)s >> %(message)s')
 
+
 def printExit():
     print('')
+
 
 def printHeader(text):
     printExit()
@@ -36,4 +37,3 @@ printHeader('Interactive Combat Test')
 c.run()
 
 printExit()
-
