@@ -1,13 +1,12 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Script: mapstests
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 """Unittest script for map functions"""
 
 # Python imports.
 import logging as log
 import unittest
 import sys
-import configparser
 
 sys.path.append('.')
 
@@ -23,6 +22,7 @@ log.basicConfig(filename='logs/mine.log',
                 filemode='w',
                 format='%(levelname)s >> %(message)s')
 soh = testutils.StdOutHandler()
+
 
 class TestFieldsModule(unittest.TestCase):
     """Unit tests for the fields module"""
@@ -56,6 +56,7 @@ class TestFieldsModule(unittest.TestCase):
             log.info('Testing map, ID: %s' % thisId)
             self.assertTrue(field.Field(thisId))
 
+
 class TestTilesModule(unittest.TestCase):
     """Unit tests for the tiles module"""
 
@@ -77,10 +78,12 @@ class TestTilesModule(unittest.TestCase):
         with self.assertRaises(Exception):
             testTile.addObject('s')
 
+
 class TestHostileModule(unittest.TestCase):
     """Unit tests for the hostile module"""
 
     pass
+
 
 class TestObjectModule(unittest.TestCase):
     """Unit tests for the object module"""

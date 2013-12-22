@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Script: combattests
 #-----------------------------------------------------------------------------
 """Unittest script for combat functions"""
@@ -27,15 +27,19 @@ log.basicConfig(filename='logs/combattests.log',
 
 soh = testutils.StdOutHandler()
 
+
 def getTestUnit():
     return unit.Unit('Mech', 'rebels')
+
 
 def getTestCombat():
     return combat.Combat([unit.Unit('Mech', 'rebels'),
                           unit.Unit('Drone', 'autoarmy')])
 
+
 def getTestCommand():
     return command.Command('punch')
+
 
 class TestUnitModule(unittest.TestCase):
     """Unit tests for the unit module"""
@@ -77,27 +81,28 @@ class TestUnitModule(unittest.TestCase):
                        lambda: newUnit.healFraction(1)],
                       unit.DEAD)]
 
-        for (action, state) in actionSet:
-            log.debug('Check action %d' % actionSet.index((action, state)))
+        for (actn, state) in actionSet:
+            log.debug('Check action %d' % actionSet.index((actn, state)))
 
             # Ensure unit is in expected state.
             newUnit.reset()
             self.assertEqual(unit.OK, newUnit.state())
 
             # Impact unit with action(s).
-            if isinstance(action, (list, tuple)):
+            if isinstance(actn, (list, tuple)):
                 log.debug('Do list of actions')
-                for act in action:
-                    log.debug('Do action: \'%d\'' % action.index(act))
+                for act in actn:
+                    log.debug('Do action: \'%d\'' % actn.index(act))
                     act()
                     log.debug('State result: \'%s\'; health: \'%d\'' %
                               (newUnit.state(), newUnit.hitpoints.value))
             else:
                 log.debug('Do single action')
-                action()
+                actn()
 
             # Test final state is as expected.
-            log.debug('State expected: \'%s\'; result: \'%s\'; health: \'%d\''%
+            log.debug(('State expected: \'%s\'; '
+                       'result: \'%s\'; health: \'%d\'') %
                       (state, newUnit.state(), newUnit.hitpoints.value))
             self.assertEqual(state, newUnit.state())
 
@@ -109,6 +114,7 @@ class TestUnitModule(unittest.TestCase):
         for thisId in allIds:
             log.info('Testing unit, ID: %s' % thisId)
             self.assertTrue(unit.Unit(thisId, 'rebels'))
+
 
 class TestCommandModule(unittest.TestCase):
     """Unit tests for the command module"""
@@ -129,6 +135,7 @@ class TestCommandModule(unittest.TestCase):
         newCmd = getTestCommand()
         newCmd.getTarget([getTestUnit()], [getTestUnit()], auto=True)
 
+
 class TestTeamModule(unittest.TestCase):
     """Unit tests for the team module"""
 
@@ -139,6 +146,7 @@ class TestTeamModule(unittest.TestCase):
         for thisId in allIds:
             log.info('Testing team, ID: %s' % thisId)
             self.assertTrue(team.Team(thisId))
+
 
 class TestCombatModule(unittest.TestCase):
     """Unit tests for the combat module"""
@@ -169,13 +177,12 @@ class TestCombatModule(unittest.TestCase):
 
         # Brute force test.  Ensure we can spin the combat for a large number
         # of cycles.
-        for ii in range (2, 500):
+        for ii in range(2, 500):
             assertNextCombat()
 
     def testCombatDisplay(self):
         """Test of displaying combat information"""
         log.info('Starting combat status unit-test')
-
 
         newUnit = getTestUnit()
         newCombat = getTestCombat()
@@ -185,6 +192,7 @@ class TestCombatModule(unittest.TestCase):
         newCombat.printOrder()
         newCombat.printCommands(newUnit)
         soh.restoreStdOut()
+
 
 class TestActionModule(unittest.TestCase):
     """Unit tests for the action module"""
@@ -197,6 +205,7 @@ class TestActionModule(unittest.TestCase):
         self.assertTrue(action.Action(action.BOOST))
         self.assertRaises(exceptions.ActionException,
                           action.Action, 'garbageactiontype')
+
 
 class TestTimerModule(unittest.TestCase):
     """Unit tests for the timer module"""
@@ -224,7 +233,7 @@ class TestTimerModule(unittest.TestCase):
                 self.assertEqual(newEvent.checkValid(), event.SILENT,
                                  'Timer popped when it should not have')
             self.assertEqual(newEvent.checkValid(), event.POP,
-                            'Timer did not pop when it should have')
+                             'Timer did not pop when it should have')
 
         #----------------------------------------------------------------------
         # Test that a non-recurring timer disappears.
@@ -235,7 +244,8 @@ class TestTimerModule(unittest.TestCase):
             self.assertEqual(newEvent.checkValid(), event.SILENT,
                              'Timer popped when it should not have')
         self.assertEqual(newEvent.checkValid(), event.POP_DIE,
-                        'Timer did not pop and die when it should have')
+                         'Timer did not pop and die when it should have')
+
 
 if __name__ == "__main__":
     for testClass in [TestCombatModule,

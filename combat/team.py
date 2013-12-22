@@ -7,6 +7,7 @@
 import logging as log
 import configparser
 
+
 class Team:
     """Class for handling team information"""
 
