@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: object
 #-----------------------------------------------------------------------------
 """Class for generating and accessing object information"""
@@ -6,6 +6,7 @@
 # Python imports.
 import configparser
 import logging as log
+
 
 class Object:
     """Class for handling and manipulating objects"""

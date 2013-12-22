@@ -7,6 +7,7 @@
 import logging as log
 import configparser
 
+
 class Hostile():
     """Class for handling and manipulating hostile objects"""
 

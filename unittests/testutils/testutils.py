@@ -7,6 +7,7 @@ import sys
 import os
 import configparser
 
+
 class StdOutHandler():
     """Class for managing stdout"""
 
@@ -21,6 +22,7 @@ class StdOutHandler():
         if self.oldStdout:
             sys.stdout.close()
             sys.stdout = self.oldStdout
+
 
 def getKeys(path):
     """Utility function for collecting all keys from a config file"""

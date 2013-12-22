@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: tile
 #-----------------------------------------------------------------------------
 """Class for manipulating gameplay tiles"""
@@ -10,6 +10,7 @@ import configparser
 # Module imports.
 import maps.object as tileObj
 import maps.hostile as hostile
+
 
 class Tile:
     """Class for handling and manipulating game tiles"""
@@ -26,7 +27,6 @@ class Tile:
 
         self.__populate()
 
-
     def __populate(self):
         """Sets the default values for the tile"""
         log.debug('Populating tile with default values')
@@ -41,7 +41,6 @@ class Tile:
             self.accessible = True
         else:
             self.accessible = False
-
 
     def addObject(self, objType):
         """Add an item or enemy that the tile contains"""

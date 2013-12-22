@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Script: utiltests
 #-----------------------------------------------------------------------------
 """Unittest script for util functions"""
@@ -17,6 +17,7 @@ log.basicConfig(filename='logs/utiltests.log',
                 level=log.DEBUG,
                 filemode='w',
                 format='$(levelname)s >> %(message)s')
+
 
 class TestCounterModule(unittest.TestCase):
     """Unit tests for the counter module"""

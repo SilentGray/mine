@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------
 # Module: field
 #-----------------------------------------------------------------------------
 """Contains class for manipulating gameplay fields"""
@@ -10,6 +10,7 @@ import logging as log
 
 # Modules imports.
 import maps.tile as tile
+
 
 class Field:
     """Class for handling and manipulating game maps"""
@@ -24,7 +25,7 @@ class Field:
         config.read('custom/map.ini')
 
         allIds = config.sections()
- 
+
         if self.mapId is None:
             self.mapId = random.choice(allIds)
             log.debug('Random choice selected %s' % self.mapId)
@@ -37,7 +38,6 @@ class Field:
         mapString = config.get(self.mapId, 'mapstring')
 
         self.__generateField(mapString)
-
 
     def __generateField(self, mapString):
         """Generates a grid of tiles from a mapstring"""
@@ -92,7 +92,6 @@ class Field:
             log.error('Line lengths: ')
             log.error(lengths)
             raise Exception
-
 
     def printMap(self):
         """Print the grid contained by the field object"""
