@@ -133,7 +133,8 @@ class TestCommandModule(unittest.TestCase):
         log.info('Starting unit test for command targeting')
 
         newCmd = getTestCommand()
-        newCmd.getTarget([getTestUnit()], [getTestUnit()], auto=True)
+        newCbt = getTestCombat()
+        newCmd.getTarget(newCbt.units, 'rebels', auto=True)
 
 
 class TestTeamModule(unittest.TestCase):
@@ -179,6 +180,43 @@ class TestCombatModule(unittest.TestCase):
         # of cycles.
         for ii in range(2, 500):
             assertNextCombat()
+
+    def testCombatUniqueNames(self):
+        """Tests combat generates unique names only."""
+        log.info('Starting unique name generation unit-test')
+
+        units = []
+        for ii in range(100):
+            log.debug('Add unit no. %d' % ii)
+            units.append(getTestUnit())
+
+        # Setup two units with unique names
+        UNIQ1 = 45
+        UNIQ2 = 77
+        units[UNIQ1].uniqueName = 'Specialish'
+        units[UNIQ2].uniqueName = 'Specialish'
+
+        newCombat = combat.Combat(units)
+
+        # Check that all units now have unique names
+        names = []
+        allUnique = True
+        for unt in units:
+            log.debug('Checking unit')
+            if unt.name in names:
+                log.error('Name {0} already used'.format(unt.name))
+                allUnique = False
+            else:
+                log.debug('Name {0} not in use'.format(unt.name))
+                names.append(unt.name)
+
+        self.assertTrue(allUnique, 'Non-unique names generated in combat')
+        self.assertEqual(units[UNIQ1].name,
+                         'Specialish',
+                         'First unique name changed')
+        self.assertEqual(units[UNIQ2].name,
+                         'Specialish1',
+                         'Second unique name not changed correctly')
 
     def testCombatDisplay(self):
         """Test of displaying combat information"""

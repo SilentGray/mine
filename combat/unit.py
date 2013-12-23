@@ -45,7 +45,15 @@ class Unit(event.Event):
             raise UnitException('Invalid value; key \'%s\' not in %s' %
                                 (self.unitId, file))
 
-        self.name = getConfig('name')
+        # Name usage:
+        # .name       - short-term name storage, preserved for length of a
+        #               combat
+        # .uniqueName - permanant storage of a unique name
+        # .longName   - permanant storage of a full name
+        self.name = None
+        self.uniqueName = None
+        self.longName = getConfig('name')
+
         self.team = team.Team(unitTeam)
         self.hitpoints = counter.Counter(int(getConfig('hitpoints')))
 
@@ -69,6 +77,11 @@ class Unit(event.Event):
         for entry in entries:
             newCommand = command.Command(entry)
             self.commands.append(newCommand)
+
+    def setName(self, name):
+        """Sets a unique name for a unit."""
+        log.debug('Setting unique name {0}'.format(name))
+        self.uniqueName = name
 
     def turn(self, targets):
         """Unit takes a turn"""
