@@ -28,4 +28,5 @@ class Team:
         if self.teamId not in self.allies:
             self.allies.append(self.teamId)
 
-        self.name = getConfig('name')
+        self.name = self.teamId
+        self.longName = getConfig('name')

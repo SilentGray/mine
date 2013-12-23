@@ -87,5 +87,6 @@ def userInput(promptText, options):
 def _getInput():
     """Gets input"""
     response = input(EDGE + 2 * BLANK + PROMPT)
+    response = response.strip()
     log.debug('Got user input: \'%s\'' % response)
     return response

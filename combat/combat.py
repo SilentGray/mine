@@ -12,9 +12,8 @@ import combat.event as event
 import combat.unit as unit
 import display.interface as intface
 
-# Combat results.
-LOSS = 1
-VICTORY = 2
+# Victory conditions.
+DEATHMATCH = 0
 
 LIST_LIMIT = 4
 
@@ -30,12 +29,21 @@ UNITINFO = """%s %d/%d
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
 
-    def __init__(self, units):
+    def __init__(self, units, victory=DEATHMATCH):
         """Initialises a new combat"""
         log.debug('Initialise a new combat')
 
         self.units = units
+        self._setVictoryCond(victory)
         self._setupCombat()
+
+    def _setVictoryCond(self, victoryCondId):
+        """Sets the victory condition for the combat"""
+        log.debug('Set victory condition')
+
+        victoryCond = {DEATHMATCH: self.conditionDeathmatch}
+
+        self.checkCombatEnd = victoryCond[victoryCondId]
 
     def _setupCombat(self):
         """Sets up the combat.
@@ -76,9 +84,23 @@ class Combat:
 
             self.combatList.append(entry)
 
+    def _cleanUnits(self):
+        """Remove dead units from the combatlist"""
+        log.debug('Removing dead units')
+
+        for unt in self.combatList:
+            log.debug('Check unit: {0}'.format(unt))
+            if unt.state() == unit.DEAD:
+                log.info('Remove dead unit: {0}'.format(unt.name))
+                self.combatList.remove(unt)
+
     def run(self):
         """Runs a combat"""
         log.info('Running commbat')
+
+        if not self.checkCombatEnd:
+            log.error('No combat end conditions set')
+            raise CombatException('No combat end conditions set')
 
         while (len(self.units) > 0):
             nextEvent = self.spin()
@@ -93,12 +115,12 @@ class Combat:
             intface.printSpacer()
 
             nextEvent.turn(self.units)
+            self._cleanUnits()
 
-            #------------------------------------------------------------------
-            # Determine if a combat is finished.
-            #------------------------------------------------------------------
-            if len(self.units) is 0:
-                return LOSS
+            victors = self.checkCombatEnd()
+            if victors != None:
+                log.debug('Combat finished, outcome {0}'.format(', '.join(victors)))
+                return victors
 
         #----------------------------------------------------------------------
         # Unexpected exit of run function.
@@ -138,6 +160,48 @@ class Combat:
         raise CombatException
 
     #--------------------------------------------------------------------------
+    # Combat end conditions.
+    #
+    # These return either 'None' (no winner - yet), or by returning a
+    # list of the winning team IDs.
+    #--------------------------------------------------------------------------
+    def conditionDeathmatch(self):
+        """Traditional match to the death.
+
+        Victory occurs when all teams have removed their oppositions.
+
+        """
+        log.debug('Checking condition "Deathmatch"')
+
+        liveTeams = {}
+        matchFin = True
+
+        for unt in self.units:
+            log.debug('Checking unit {0}'.format(unt))
+            if unt.state() != unit.DEAD and unt.team.teamId not in liveTeams:
+                log.debug('Add new live team: {0}'.format(unt.team.teamId))
+                liveTeams[unt.team.teamId] = unt.team.allies
+
+        log.debug('Live teams: {0}'.format(', '.join(liveTeams.keys())))
+
+        for team, allies in liveTeams.items():
+            log.debug('Check team {0} with allies: {1}'.format(team,
+                      ', '.join(allies)))
+
+            for otherTeam in liveTeams.keys():
+                log.debug('Check team {0}'.format(otherTeam))
+                if otherTeam not in allies:
+                    log.debug('Enemy team still standing')
+                    matchFin = False
+
+        if matchFin:
+            log.debug('Battle finished')
+            return [tm for tm in liveTeams.keys()]
+        else:
+            log.debug('Battle incomplete')
+            return None
+
+    #--------------------------------------------------------------------------
     # Combat display handling.
     #--------------------------------------------------------------------------
     def printStatus(self):
@@ -163,10 +227,10 @@ class Combat:
 
         toDisplay = {}
         for unt in self.units:
-            if unt.team.name not in toDisplay.keys():
-                toDisplay[unt.team.name] = []
+            if unt.team.longName not in toDisplay.keys():
+                toDisplay[unt.team.longName] = []
 
-            toDisplay[unt.team.name].append(unt)
+            toDisplay[unt.team.longName].append(unt)
 
         for team in toDisplay.keys():
             intface.printText('-- %s --' % team)

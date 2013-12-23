@@ -46,7 +46,8 @@ class Unit(event.Event):
                                 (self.unitId, file))
 
         # Name usage:
-        # .name       - short-term name storage, preserved for a combat
+        # .name       - short-term name storage, preserved for length of a
+        #               combat
         # .uniqueName - permanant storage of a unique name
         # .longName   - permanant storage of a full name
         self.name = None

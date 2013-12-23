@@ -34,7 +34,7 @@ class Command(Action):
         def getConfig(field):
             return config.get(self.commandId, field)
 
-        self.name = getConfig('name')
+        self.name = self.commandId
         self.description = getConfig('description')
 
         self.selfOnly = getBool(getConfig('self'))
@@ -54,17 +54,24 @@ class Command(Action):
 
     def getTarget(self, targets, allies, auto=False):
         """Gets a target for an action"""
-        log.debug('Getting a target')
+        log.debug('Getting a target, excluding allies: {0}'.format(
+                      ', '.join(allies)))
 
         if auto:
             log.debug('Unit is automated')
 
             if self.offensive:
-                return random.choice([unit for unit in targets
-                                      if unit.team.name not in allies])
+                log.debug('Offensive attack')
+                validTargets = [unit for unit in targets
+                                if unit.team.name not in allies]
             else:
-                return random.choice([unit for unit in targets
-                                      if unit.team.name in allies])
+                log.debug('Non-offensive attack')
+                validTargets = [unit for unit in targets
+                                if unit.team.name in allies]
+
+            log.debug('Choice of target from: {0}'.format(', '.join(
+                          [unit.name for unit in validTargets])))
+            return random.choice(validTargets)
 
         return userInput('Targets available for action:',
                          [act for act in (targets)])
