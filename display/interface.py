@@ -95,33 +95,31 @@ def cleanColours():
 LINE_START = (subduedColours() + EDGE + resetColours())
 LINE_END = (subduedColours() + EDGE)
 
-def printLine(line):
+def printLine(line, padding=True):
     """Prints the line and handles edge formatting."""
-    print(LINE_START + line + LINE_END)
+    if padding:
+        print(LINE_START + 2 * BLANK + line + 2 * BLANK + LINE_END)
+    else:
+        print(LINE_START + line + LINE_END)
 
 def printRefresh():
     """Print to clear the screen and reset cursor."""
-    return('\033[2J\033[h')
+    print('\033[2J\033[h')
+    return
 
 def printSpacer():
     """Prints a single spacer line"""
-    printLine(subduedColours() + ('{:%s^78}' % SEPERATOR).format(''))
+    printLine((subduedColours() + ('{:%s^78}' % SEPERATOR).format('')),
+              padding=False)
 
 def printText(text):
     """Prints a single block of text"""
     for line in text.split('\n'):
-        print(EDGE + BLANK * 2 +
-              ('{:%s<74}' % BLANK).format(line) +
-              BLANK * 2 + EDGE)
+        printLine(('{:%s<74}' % BLANK).format(line))
 
 def printBlank():
     """Prints a blank line"""
-    print(EDGE + ('{:%s^78}' % BLANK).format('') + EDGE)
-
-def printRefresh():
-    """Print alot, to clear the terminal"""
-    print(79 * '\n')
-
+    printLine(('{:%s^74}' % BLANK).format(''))
 
 def printTwoColumns(text1, text2):
     """Prints two columns of text side-by-side"""
@@ -140,9 +138,8 @@ def printTwoColumns(text1, text2):
         else:
             string2 = ''
 
-        print(EDGE + 2 * BLANK + ('{:%s<35}' % BLANK).format(string1) +
-              4 * BLANK + ('{:%s<35}' % BLANK).format(string2) +
-              2 * BLANK + EDGE)
+        printLine(('{:%s<35}' % BLANK).format(string1) + 4 * BLANK +
+                  ('{:%s<35}' % BLANK).format(string2))
 
 def userInput(promptText, options):
     """Gets a users choice for an action"""
