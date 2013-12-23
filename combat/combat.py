@@ -18,6 +18,14 @@ VICTORY = 2
 
 LIST_LIMIT = 4
 
+# Unit info as printed in combat.
+#   <Uniq-Id>: <HP>/<Max-HP>
+#     <Full Name>
+#     Status: <State>
+UNITINFO = """%s %d/%d
+-Unit    %s
+-Status  %s"""
+
 
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
@@ -27,11 +35,45 @@ class Combat:
         log.debug('Initialise a new combat')
 
         self.units = units
+        self._setupCombat()
+
+    def _setupCombat(self):
+        """Sets up the combat.
+
+        This populates the active combat list and applies combat IDs to all
+        of the units involved."""
+        log.debug('Set up combat IDs')
+
         self.nextActive = 0
+        names = {}
 
         self.combatList = []
         for entry in self.units:
             log.debug('Adding %s to combat-list.' % entry)
+
+            if entry.uniqueName:
+                log.debug('Use unique name "{0}"'.format(entry.uniqueName))
+                idn = entry.uniqueName
+            else:
+                log.debug('Use non-unique ID "{0}"'.format(entry.unitId))
+                idn = entry.unitId
+
+            if idn in names:
+                log.debug('Increment name {0}, previous usage: {1}'.format(idn, names[idn]))
+                if entry.uniqueName:
+                    log.error('Unique name already in use: "{0}"'.format(entry.uniqueName))
+                names[idn] += 1
+            else:
+                log.debug('New name: {0}'.format(idn))
+                names[idn] = 0
+
+            if entry.uniqueName and names[idn] == 0:
+                log.debug('Set unique name')
+                entry.name = idn
+            else:
+                log.debug('Set non-unique name')
+                entry.name = ''.join([idn, str(names[idn])])
+
             self.combatList.append(entry)
 
     def run(self):
@@ -103,10 +145,11 @@ class Combat:
         log.debug('Printing combat status')
 
         def singleEntry(entry):
-            return("""%s: %d/%d\n  Status: %s""" %
-                   ('{:<15}'.format(entry.name),
+            return(UNITINFO %
+                   ('{:<8}'.format(entry.name),
                     entry.hitpoints.getValue(),
                     entry.hitpoints.maximum,
+                    entry.longName,
                     entry.state()))
 
         def displayEntries(entries):

@@ -23,12 +23,14 @@ What to display:
   Battlefield info:
 
   My Team Info:
-    Name of unit
+    Name of unit (unique)
+    Unit type
     HP remaining
     Status effects
 
   Enemy info:
-    Name of unit
+    Name of unit (unique)
+    Unit type
     (Known) status effects
 
   Combat info:
