@@ -133,7 +133,8 @@ class TestCommandModule(unittest.TestCase):
         log.info('Starting unit test for command targeting')
 
         newCmd = getTestCommand()
-        newCmd.getTarget([getTestUnit()], [getTestUnit()], auto=True)
+        newCbt = getTestCombat()
+        newCmd.getTarget(newCbt.units, 'rebels', auto=True)
 
 
 class TestTeamModule(unittest.TestCase):
