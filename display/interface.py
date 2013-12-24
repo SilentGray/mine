@@ -128,16 +128,16 @@ def cleanColours():
     return('\033[0m')
 
 # Format definitions.
-LINE_START = (subduedColours() + EDGE + resetColours())
-LINE_END = (subduedColours() + EDGE)
+INTLINESTART = (subduedColours() + EDGE + resetColours())
+INTLINEEND = (subduedColours() + EDGE)
 
 
 def printLine(line, padding=True):
     """Prints the line and handles edge formatting."""
     if padding:
-        print(LINE_START + 2 * BLANK + line + 2 * BLANK + LINE_END)
+        print(INTLINESTART + 2 * BLANK + line + 2 * BLANK + INTLINEEND)
     else:
-        print(LINE_START + line + LINE_END)
+        print(INTLINESTART + line + INTLINEEND)
 
 
 def printRefresh():
@@ -210,7 +210,7 @@ def userInput(promptText, options):
 
 def _getInput():
     """Gets input"""
-    response = input(LINE_START +
+    response = input(INTLINESTART +
                      2*BLANK +
                      subduedColours() +
                      PROMPT +
