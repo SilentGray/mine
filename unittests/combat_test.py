@@ -196,8 +196,6 @@ class TestCombatModule(unittest.TestCase):
         units[UNIQ1].uniqueName = 'Specialish'
         units[UNIQ2].uniqueName = 'Specialish'
 
-        newCombat = combat.Combat(units)
-
         # Check that all units now have unique names
         names = []
         allUnique = True

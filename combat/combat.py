@@ -67,9 +67,11 @@ class Combat:
                 idn = entry.unitId
 
             if idn in names:
-                log.debug('Increment name {0}, previous usage: {1}'.format(idn, names[idn]))
+                log.debug('Increment name {0}, previous usage: {1}'.format(
+                          idn, names[idn]))
                 if entry.uniqueName:
-                    log.error('Unique name already in use: "{0}"'.format(entry.uniqueName))
+                    log.error('Unique name already in use: "{0}"'.format(
+                              entry.uniqueName))
                 names[idn] += 1
             else:
                 log.debug('New name: {0}'.format(idn))
