@@ -55,7 +55,7 @@ class Command(Action):
     def getTarget(self, targets, allies, auto=False):
         """Gets a target for an action"""
         log.debug('Getting a target, excluding allies: {0}'.format(
-                      ', '.join(allies)))
+                  ', '.join(allies)))
 
         if auto:
             log.debug('Unit is automated')
@@ -70,7 +70,7 @@ class Command(Action):
                                 if unit.team.name in allies]
 
             log.debug('Choice of target from: {0}'.format(', '.join(
-                          [unit.name for unit in validTargets])))
+                      [unit.name for unit in validTargets])))
             return random.choice(validTargets)
 
         return userInput('Targets available for action:',
