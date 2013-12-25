@@ -86,6 +86,10 @@ BLANK = ' '
 
 
 # Colour application.
+#
+# Warning: No logging in these functions as they may be called on import (and
+# these are only wrapper functions to return ANSI escape sequences).  Logging
+# should be performed by the calling functions.
 def bold():
     """Sets the font to be bold."""
     return('\033[1m')
@@ -93,38 +97,31 @@ def bold():
 
 def applyColour(value, back=False):
     """Sets a colour, accomodating for colours available."""
-    log.debug('Apply colour: %d' % value)
     return(colour(value, back))
 
 
 def applyColours(fore_col, back_col):
     """Sets both fore and background colours."""
-    log.debug('Apply colours: Fore=%d, Back=%d' % (fore_col, back_col))
     return(applyColour(fore_col, False) + applyColour(back_col, True))
 
 
 def hightlitColours(fore_col=FORE_HIGHLIGHT, back_col=BACK_NORM):
     """Sets text and background colours and applies a bold font."""
-    log.debug('Apply colours: Set highlighted colours; Fore=%d, Back=%d' %
-              (fore_col, back_col))
     return(bold() + applyColours(fore_col, back_col))
 
 
 def subduedColours():
     """Resets the text and background colours to subdued."""
-    log.debug('Apply colours: Set subdued colours.')
     return(applyColours(FORE_SUBDUED, BACK_NORM))
 
 
 def resetColours():
     """Resets the text and background colours to default."""
-    log.debug('Apply colours: Set default formatting.')
     return(applyColours(FORE_NORM, BACK_NORM))
 
 
 def cleanColours():
     """Removes all formatting."""
-    log.debug('Apply colours: Remove text formatting.')
     return('\033[0m')
 
 # Format definitions.
@@ -134,50 +131,63 @@ INTLINEEND = (subduedColours() + EDGE)
 
 def printLine(line, padding=True):
     """Prints the line and handles edge formatting."""
+    log.debug('Print line: "{0}"'.format(line))
     if padding:
+        log.debug('Add padding')
         print(INTLINESTART + 2 * BLANK + line + 2 * BLANK + INTLINEEND)
     else:
+        log.debug('No padding')
         print(INTLINESTART + line + INTLINEEND)
 
 
 def printRefresh():
     """Print to clear the screen and reset cursor."""
+    log.debug('Clearing screen')
     print('\033[2J\033[h')
-    return
 
 
 def printSpacer():
     """Prints a single spacer line"""
+    log.debug('Printing spacer line')
     printLine((subduedColours() + ('{:%s^78}' % SEPERATOR).format('')),
               padding=False)
 
 
 def printText(text):
     """Prints a single block of text"""
+    log.debug('Printing block of text')
     for line in text.split('\n'):
+        log.debug('Printing line: "{0}"'.format(line))
         printLine(('{:%s<74}' % BLANK).format(line))
 
 
 def printBlank():
     """Prints a blank line"""
+    log.debug('Printing blank line')
     printLine(('{:%s^74}' % BLANK).format(''))
 
 
 def printTwoColumns(text1, text2):
     """Prints two columns of text side-by-side"""
+    log.debug('Printing double columns of text')
     lines1 = text1.split('\n')
     lines2 = text2.split('\n')
     max1 = len(lines1)
     max2 = len(lines2)
 
     for num in range(max([max1, max2])):
+        log.debug('Printing line {0}'.format(num))
         if num < max1:
+            log.debug('Column 1 occupied')
             string1 = lines1[num]
         else:
+            log.debug('Colummn 1 empty')
             string1 = ''
         if num < max2:
+            log.debug('Column 2 occupied')
             string2 = lines2[num]
         else:
+            log.debug('Column 2 empty')
             string2 = ''
 
         printLine(('{:%s<35}' % BLANK).format(string1) + 4 * BLANK +
@@ -197,8 +207,9 @@ def userInput(promptText, options):
 
         for option in options:
             # Case insensitive matching.
+            log.debug('Check option: {0}'.format(option.name))
             if choice.lower() == option.name.lower():
-                log.debug('Returning option: \'%s\'' % option.name)
+                log.debug('Option matches')
                 return option
 
         log.debug('Invalid response: \'%s\'' % choice)
@@ -210,6 +221,7 @@ def userInput(promptText, options):
 
 def _getInput():
     """Gets input"""
+    log.debug('Getting user input')
     response = input(INTLINESTART +
                      2*BLANK +
                      subduedColours() +
