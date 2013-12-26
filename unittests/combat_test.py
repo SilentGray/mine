@@ -44,6 +44,23 @@ def getTestCommand():
 class TestUnitModule(unittest.TestCase):
     """Unit tests for the unit module"""
 
+    def testUnitCommands(self):
+        """Test unit command generation"""
+        log.info('Starting unit commands unit-test')
+
+        newUnit = getTestUnit()
+
+        def checkCommand(command):
+            """Check for the presence of a particular command"""
+            log.debug('Check command: {0}'.format(command))
+            self.assertTrue(len([cmd for cmd in newUnit.commands
+                                 if cmd.name == command]) > 0,
+                            'Command "{0}" not owned by test unit'.format(
+                                command))
+
+        for cmd in ['attack', 'armour']:
+            checkCommand(cmd)
+
     def testUnitDisplay(self):
         """Test of displaying unit information"""
         log.info('Starting unit display unit-test')

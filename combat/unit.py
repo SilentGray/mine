@@ -27,7 +27,7 @@ EVA = 'evasion'
 SPE = 'speed'
 ATT = 'attack'
 
-# Attack sub-attributes
+# Attack types
 MELEE = 'melee'
 RANGED = 'ranged'
 
@@ -67,7 +67,7 @@ class Unit(event.Event):
         # .name       - short-term name storage, preserved for length of a
         #               combat
         # .uniqueName - permanant storage of a unique name
-        # .longName   - permanant storage of a full name
+        # .longName   - permanant storage of a full unit-type name
         self.name = None
         self.uniqueName = None
         self.longName = getConfig('name')
@@ -80,7 +80,7 @@ class Unit(event.Event):
         # Event initialisation.
         event.Event.__init__(self,
                              None,
-                             self.attributes[SPE],
+                             self.attributes[SPE].value,
                              recurring=True)
 
         # Whether the unit is automatic, or user-controlled.
@@ -98,16 +98,17 @@ class Unit(event.Event):
 
         self.attributes = {}
 
-        def setStat(stat, value):
-            """Sets up the counter for a single stat.
+        def setStat(value):
+            """Returns a counter for a single stat.
 
             Sets up a new counter up to _MAXSTAT_ at the value given.
 
             """
-            log.debug('Setting stat: {0}'.format(stat))
+            log.debug('Setting stat')
             stat = counter.Counter(MAXSTAT)
             stat.default = value
             stat.reset()
+            return stat
 
         # Setup HP, which does not obey _MAXSTAT_.
         self.attributes[HP] = counter.Counter(int(configGetter(HP)))
@@ -115,15 +116,13 @@ class Unit(event.Event):
         # Setup simple attributes
         for attr in SIMATTR:
             log.debug('Setup attribute: {0}'.format(attr))
-            self.attributes[attr] = None
-            setStat(self.attributes[attr], int(configGetter(attr)))
+            self.attributes[attr] = setStat(int(configGetter(attr)))
 
         # Setup all the attack attributes
         self.attributes[ATT] = {}
         for attattr in ATTATTR:
             log.debug('Setup attack attribute: {0}'.format(attr))
-            self.attributes[ATT][attattr] = None
-            setStat(self.attributes[ATT][attattr], int(configGetter(attattr)))
+            self.attributes[ATT][attattr] = setStat(int(configGetter(attattr)))
 
     def _generate_commands(self, entries):
         """Generate the command objects for this unit"""
