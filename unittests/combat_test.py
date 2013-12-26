@@ -38,7 +38,7 @@ def getTestCombat():
 
 
 def getTestCommand():
-    return command.Command('punch')
+    return command.Command('attack')
 
 
 class TestUnitModule(unittest.TestCase):
@@ -58,7 +58,7 @@ class TestUnitModule(unittest.TestCase):
                             'Command "{0}" not owned by test unit'.format(
                                 command))
 
-        for cmd in ['attack', 'armour']:
+        for cmd in ['attack', 'armour', 'pass']:
             checkCommand(cmd)
 
     def testUnitDisplay(self):
@@ -66,7 +66,7 @@ class TestUnitModule(unittest.TestCase):
         log.info('Starting unit display unit-test')
 
         newUnit = getTestUnit()
-        self.assertEqual(newUnit.listCommands(), 'attack, armour')
+        self.assertEqual(newUnit.listCommands(), 'attack, armour, pass')
 
         soh.hideStdOut()
         # Unit must be automated or test will hang for user input.
@@ -259,7 +259,7 @@ class TestActionModule(unittest.TestCase):
         """Test action type verification"""
         log.info('Starting action type verification')
 
-        self.assertTrue(action.Action(action.IMPACT))
+        self.assertTrue(action.Action(action.MELEE))
         self.assertTrue(action.Action(action.BOOST))
         self.assertRaises(exceptions.ActionException,
                           action.Action, 'garbageactiontype')

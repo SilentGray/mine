@@ -56,12 +56,12 @@ class Unit(event.Event):
             """Get a value from the current config file"""
             return config.get(self.unitId, field)
 
-        file = 'custom/unit.ini'
+        unitfile = 'custom/unit.ini'
         config = configparser.ConfigParser()
-        config.read(file)
+        config.read(unitfile)
         if self.unitId not in config.sections():
             raise UnitException('Invalid value; key \'%s\' not in %s' %
-                                (self.unitId, file))
+                                (self.unitId, unitfile))
 
         # Name usage:
         # .name       - short-term name storage, preserved for length of a
@@ -129,12 +129,16 @@ class Unit(event.Event):
         log.debug('Adding commands to unit %s' % self)
         self.commands = []
 
+        self.commands.append(command.Command('attack'))
+
         for entry in entries:
 
             # Ignore blank string commands
             if entry:
                 newCommand = command.Command(entry)
                 self.commands.append(newCommand)
+
+        self.commands.append(command.Command('pass'))
 
     def setName(self, name):
         """Sets a unique name for a unit."""

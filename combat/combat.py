@@ -98,7 +98,7 @@ class Combat:
 
     def run(self):
         """Runs a combat"""
-        log.info('Running commbat')
+        log.info('Running combat')
 
         if not self.checkCombatEnd:
             log.error('No combat end conditions set')

@@ -22,9 +22,13 @@ from utils.exceptions import ActionException
 #    'impact'     - Direct impact on a units health (damage or
 #                   healing).
 #    'boost'      - Direct impact on a units stat.
+#    'inactive'   - Special type; perform no action.
 #------------------------------------------------------------------------------
-IMPACT = 'impact'
+MELEE = 'melee'
 BOOST = 'boost'
+INACTIVE = 'inactive'
+
+ACTIONTYPES = [MELEE, BOOST, INACTIVE]
 
 
 class Action:
@@ -34,7 +38,7 @@ class Action:
         log.debug('Initializing a new action, type: %s, amount, %d' %
                   (actionType, amount))
 
-        if actionType not in [IMPACT, BOOST]:
+        if actionType not in ACTIONTYPES:
             log.error('Unrecognised action type: %s' % actionType)
             raise ActionException
 
@@ -49,8 +53,13 @@ class Action:
         """
         log.debug('Performing action %s on: %s' % (self.name, target))
 
-        if self.actionType == IMPACT:
-            log.debug('Action is %s' % IMPACT)
+        if self.actionType == INACTIVE:
+            log.debug('Action is %s' % INACTIVE)
+
+            # Do nothing.
+
+        elif self.actionType == MELEE:
+            log.debug('Action is %s' % MELEE)
 
             target.damage(self.amount)
 
