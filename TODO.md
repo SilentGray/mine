@@ -14,6 +14,7 @@ Stats:
   * Ranged
 * Defence - resistance to damage
 * Evasion - chance to dodge
+* Speed   - time taken between attacks
 
 #Unit progression system __[LOW] dep: TL1__
 User-owned units should be able to level up, getting new moves and increasing their stats.
