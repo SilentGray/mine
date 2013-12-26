@@ -31,8 +31,11 @@ ATT = 'attack'
 MELEE = 'melee'
 RANGED = 'ranged'
 
+# Maximum stat for non-HP attributes
+MAXSTAT = 100
+
 # Attribute categories
-SIMATTR = [HP, DEF, EVA, SPE]
+SIMATTR = [DEF, EVA, SPE]
 ATTATTR = [MELEE, RANGED]
 
 
@@ -77,7 +80,7 @@ class Unit(event.Event):
         # Event initialisation.
         event.Event.__init__(self,
                              None,
-                             int(getConfig('speed')),
+                             self.attributes[SPE],
                              recurring=True)
 
         # Whether the unit is automatic, or user-controlled.
@@ -95,17 +98,32 @@ class Unit(event.Event):
 
         self.attributes = {}
 
-        # Grab simple attributes
+        def setStat(stat, value):
+            """Sets up the counter for a single stat.
+
+            Sets up a new counter up to _MAXSTAT_ at the value given.
+
+            """
+            log.debug('Setting stat: {0}'.format(stat))
+            stat = counter.Counter(MAXSTAT)
+            stat.default = value
+            stat.reset()
+
+        # Setup HP, which does not obey _MAXSTAT_.
+        self.attributes[HP] = counter.Counter(int(configGetter(HP)))
+
+        # Setup simple attributes
         for attr in SIMATTR:
             log.debug('Setup attribute: {0}'.format(attr))
-            self.attributes[attr] = counter.Counter(int(configGetter(attr)))
+            self.attributes[attr] = None
+            setStat(self.attributes[attr], int(configGetter(attr)))
 
-        # Grab all the attack attributes
+        # Setup all the attack attributes
         self.attributes[ATT] = {}
         for attattr in ATTATTR:
             log.debug('Setup attack attribute: {0}'.format(attr))
-            self.attributes[ATT][attattr] = counter.Counter(
-                int(configGetter(attattr)))
+            self.attributes[ATT][attattr] = None
+            setStat(self.attributes[ATT][attattr], int(configGetter(attattr)))
 
     def _generate_commands(self, entries):
         """Generate the command objects for this unit"""
