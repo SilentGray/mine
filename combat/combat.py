@@ -213,8 +213,8 @@ class Combat:
         def singleEntry(entry):
             return(UNITINFO %
                    ('{:<8}'.format(entry.name),
-                    entry.hitpoints.getValue(),
-                    entry.hitpoints.maximum,
+                    entry.attributes[unit.HP].value,
+                    entry.attributes[unit.HP].maximum,
                     entry.longName,
                     entry.state()))
 

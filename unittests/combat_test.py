@@ -29,12 +29,12 @@ soh = testutils.StdOutHandler()
 
 
 def getTestUnit():
-    return unit.Unit('Mech', 'rebels')
+    return unit.Unit('mech', 'rebels')
 
 
 def getTestCombat():
-    return combat.Combat([unit.Unit('Mech', 'rebels'),
-                          unit.Unit('Drone', 'autoarmy')])
+    return combat.Combat([unit.Unit('mech', 'rebels'),
+                          unit.Unit('drone', 'autoarmy')])
 
 
 def getTestCommand():
@@ -49,7 +49,7 @@ class TestUnitModule(unittest.TestCase):
         log.info('Starting unit display unit-test')
 
         newUnit = getTestUnit()
-        self.assertEqual(newUnit.listCommands(), 'punch, armour')
+        self.assertEqual(newUnit.listCommands(), 'attack, armour')
 
         soh.hideStdOut()
         # Unit must be automated or test will hang for user input.
@@ -95,7 +95,8 @@ class TestUnitModule(unittest.TestCase):
                     log.debug('Do action: \'%d\'' % actn.index(act))
                     act()
                     log.debug('State result: \'%s\'; health: \'%d\'' %
-                              (newUnit.state(), newUnit.hitpoints.value))
+                              (newUnit.state(),
+                               newUnit.attributes[unit.HP].value))
             else:
                 log.debug('Do single action')
                 actn()
@@ -103,7 +104,9 @@ class TestUnitModule(unittest.TestCase):
             # Test final state is as expected.
             log.debug(('State expected: \'%s\'; '
                        'result: \'%s\'; health: \'%d\'') %
-                      (state, newUnit.state(), newUnit.hitpoints.value))
+                      (state,
+                       newUnit.state(),
+                       newUnit.attributes[unit.HP].value))
             self.assertEqual(state, newUnit.state())
 
     def testVerifyUnits(self):

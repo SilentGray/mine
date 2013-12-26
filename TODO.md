@@ -21,7 +21,7 @@ User-owned units should be able to level up, getting new moves and increasing th
 
 ##Combat
 # Retune combat __[MED] dep: TL1__
-After addition of the new stats attacks need to be updated to accomodate these stats.  Each unit should have a normal attack based on the equipped weapon, a `pass` move to skip a turn, as well as additional abilities.  Existing abilities should be updated to use the new attributes.
+After addition of the new stats attacks need to be updated to accomodate these stats.  Each unit should have a normal attack based on stats, a `pass` move to skip a turn, as well as additional abilities.  Existing abilities should be updated to use the new attributes.
 
 #Add help commands __[LOW]__
 There should be some additional commands to aid players.
