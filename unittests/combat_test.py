@@ -33,7 +33,7 @@ def getTestUnit():
 
 
 def getTestCombat():
-    return combat.Combat([unit.Unit('mech', 'rebels'),
+    return combat.Combat([unit.Unit('drone', 'rebels'),
                           unit.Unit('drone', 'autoarmy')])
 
 
@@ -107,15 +107,9 @@ class TestUnitModule(unittest.TestCase):
 
             # Impact unit with action(s).
             if isinstance(actn, (list, tuple)):
-                log.debug('Do list of actions')
                 for act in actn:
-                    log.debug('Do action: \'%d\'' % actn.index(act))
                     act()
-                    log.debug('State result: \'%s\'; health: \'%d\'' %
-                              (newUnit.state(),
-                               newUnit.attributes[unit.HP].value))
             else:
-                log.debug('Do single action')
                 actn()
 
             # Test final state is as expected.
@@ -251,18 +245,57 @@ class TestCombatModule(unittest.TestCase):
         newCombat.printCommands(newUnit)
         soh.restoreStdOut()
 
+    def testCombatVictories(self):
+        """Test of combat victory conditions.
 
-class TestActionModule(unittest.TestCase):
-    """Unit tests for the action module"""
+        Do this by setting up combats in a victory condition, spin once and
+        verify the correct winners are returned.
 
-    def testActionTypes(self):
-        """Test action type verification"""
-        log.info('Starting action type verification')
+        """
+        log.info('Starting combat victory unit-test')
 
-        self.assertTrue(action.Action(action.MELEE))
-        self.assertTrue(action.Action(action.BOOST))
-        self.assertRaises(exceptions.ActionException,
-                          action.Action, 'garbageactiontype')
+        loser = unit.Unit('drone', 'autoarmy')
+        winner = unit.Unit('drone', 'rebels')
+        allUnits = [winner, loser]
+
+        actionSet = [(lambda: loser.kill(), ['rebels']),
+                     ([lambda: loser.kill(), lambda: winner.kill()], [])]
+
+        for (actions, victors) in actionSet:
+            log.debug('Run actionset...')
+
+            for unt in allUnits:
+                log.debug('Resetting {0}'.format(unt.name))
+                unt.reset()
+                self.assertEqual(unt.state(), unit.OK,
+                                 'Unit not reset correctly during test')
+
+            newCombat = combat.Combat([loser, winner])
+
+            if isinstance(actions, (list, tuple)):
+                for actn in actions:
+                    actn()
+            else:
+                actions()
+
+            soh.hideStdOut()
+            result = newCombat.run()
+            soh.restoreStdOut()
+
+            self.assertEqual(victors, result,
+                             ('Deathmatch victor returned "{0}"; expected '
+                              '"{1}').format(result, victors))
+
+    def testCombatComplete(self):
+        """Run a test combat an ensure that it completes"""
+        log.info('Starting complete combat unit-test')
+
+        soh.hideStdOut()
+
+        newCombat = getTestCombat()
+        newCombat.run()
+
+        soh.restoreStdOut()
 
 
 class TestTimerModule(unittest.TestCase):
@@ -272,7 +305,7 @@ class TestTimerModule(unittest.TestCase):
         """Test of combat timer initiation"""
         log.info('Starting combat timer initiation')
 
-        newEvent = event.Event(None, 0)
+        newEvent = event.Event(0)
         self.assertTrue(newEvent, 'Failed to initialize new event')
 
     def testTimerExpiry(self):
@@ -282,7 +315,7 @@ class TestTimerModule(unittest.TestCase):
         #----------------------------------------------------------------------
         # Test that a recurring timer reoccurs repeatedly.
         #----------------------------------------------------------------------
-        newEvent = event.Event(None, 4, recurring=True)
+        newEvent = event.Event(4, recurring=True)
 
         for num in range(0, 10):
             log.debug('Cycle %d / 9' % num)
@@ -296,7 +329,7 @@ class TestTimerModule(unittest.TestCase):
         #----------------------------------------------------------------------
         # Test that a non-recurring timer disappears.
         #----------------------------------------------------------------------
-        newEvent = event.Event(None, 4)
+        newEvent = event.Event(4)
 
         for num in range(0, 3):
             self.assertEqual(newEvent.checkValid(), event.SILENT,

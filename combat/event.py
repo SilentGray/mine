@@ -18,12 +18,11 @@ POP_DIE = 2
 class Event:
     """Class for managing combat events"""
 
-    def __init__(self, action, count, recurring=False):
+    def __init__(self, count, recurring=False):
         """Initialise a new event"""
         log.debug('Initializing new event %s' % self)
 
         self.time = counter.Counter(count)
-        self.action = action
         self.recurring = recurring
 
     def expire(self):

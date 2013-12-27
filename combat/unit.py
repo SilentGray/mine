@@ -13,6 +13,7 @@ from utils.exceptions import UnitException
 from display.interface import userInput
 import utils.counter as counter
 import combat.event as event
+import combat.action as action
 import combat.command as command
 import combat.team as team
 
@@ -27,16 +28,11 @@ EVA = 'evasion'
 SPE = 'speed'
 ATT = 'attack'
 
-# Attack types
-MELEE = 'melee'
-RANGED = 'ranged'
-
 # Maximum stat for non-HP attributes
 MAXSTAT = 100
 
 # Attribute categories
 SIMATTR = [DEF, EVA, SPE]
-ATTATTR = [MELEE, RANGED]
 
 
 class Unit(event.Event):
@@ -79,7 +75,6 @@ class Unit(event.Event):
 
         # Event initialisation.
         event.Event.__init__(self,
-                             None,
                              self.attributes[SPE].value,
                              recurring=True)
 
@@ -120,7 +115,7 @@ class Unit(event.Event):
 
         # Setup all the attack attributes
         self.attributes[ATT] = {}
-        for attattr in ATTATTR:
+        for attattr in action.ATTACKTYPES:
             log.debug('Setup attack attribute: {0}'.format(attr))
             self.attributes[ATT][attattr] = setStat(int(configGetter(attattr)))
 
@@ -140,13 +135,25 @@ class Unit(event.Event):
 
         self.commands.append(command.Command('pass'))
 
+    def getAttack(self, attType):
+        """Returns the value of the attack stat _type_."""
+        return self.attributes[ATT][attType].value
+
+    def getDefence(self):
+        """Returns the value of the defence stat."""
+        return self.attributes[DEF].value
+
     def setName(self, name):
         """Sets a unique name for a unit."""
         log.debug('Setting unique name {0}'.format(name))
         self.uniqueName = name
 
     def turn(self, targets):
-        """Unit takes a turn"""
+        """Unit takes a turn
+
+        This will return an event to add to the combatlist if required.
+
+        """
         log.debug('Turn from %s next' % self.name)
 
         choice = self.getChoice()
@@ -159,10 +166,10 @@ class Unit(event.Event):
                                             auto=self.auto)
 
         # Do action.
-        log.info('%s uses %s on %s' % (self.name,
+        log.debug('%s uses %s on %s' % (self.name,
                                        choice.name,
                                        targetChoice.name))
-        choice.doAction(targetChoice)
+        return choice.activate(self, targetChoice)
 
     def state(self):
         """Returns the state of the unit"""

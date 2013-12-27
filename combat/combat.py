@@ -92,7 +92,7 @@ class Combat:
 
         for unt in self.combatList:
             log.debug('Check unit: {0}'.format(unt))
-            if unt.state() == unit.DEAD:
+            if isinstance(unt, unit.Unit) and unt.state() == unit.DEAD:
                 log.info('Remove dead unit: {0}'.format(unt.name))
                 self.combatList.remove(unt)
 
@@ -116,12 +116,18 @@ class Combat:
             intface.printBlank()
             intface.printSpacer()
 
-            nextEvent.turn(self.units)
+            newEvent = nextEvent.turn(self.units)
+            if newEvent:
+                log.debug('Add new event to the combatlist: {0}'.format(
+                    newEvent))
+                self.combatList.append(newEvent)
+
             self._cleanUnits()
 
             victors = self.checkCombatEnd()
-            if victors != None:
-                log.debug('Combat finished, outcome {0}'.format(', '.join(victors)))
+            if victors is not None:
+                log.debug('Combat finished, outcome victors: {0}'.format(
+                    ', '.join(victors)))
                 return victors
 
         #----------------------------------------------------------------------
@@ -144,7 +150,7 @@ class Combat:
         #----------------------------------------------------------------------
         while cycles < 500:
             for action in self.activelist():
-                log.debug('Checking %s' % event)
+                log.debug('Checking %s' % action)
                 result = action.checkValid()
 
                 if result is not event.SILENT:

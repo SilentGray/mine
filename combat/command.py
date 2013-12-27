@@ -15,7 +15,7 @@ from combat.action import Action
 from display.interface import userInput
 
 
-class Command(Action):
+class Command:
     """Class for handling and manipulating unit commands"""
 
     def __init__(self, inputId):
@@ -40,17 +40,17 @@ class Command(Action):
         self.selfOnly = getBool(getConfig('self'))
         self.offensive = getBool(getConfig('offensive'))
 
+        self.actionType = getConfig('type')
+        self.amount = int(getConfig('amount'))
+
         self.delay = int(getConfig('delay'))
         if self.delay:
+            log.debug('Delayed action')
             self.delayDescription = getConfig('delay_description')
 
         self.expiry = int(getConfig('expiry'))
         if self.expiry:
             self.expiryDescription = getConfig('expiry_description')
-
-        actionType = getConfig('type')
-        amount = int(getConfig('amount'))
-        Action.__init__(self, actionType, amount)
 
     def getTarget(self, targets, allies, auto=False):
         """Gets a target for an action"""
@@ -75,3 +75,18 @@ class Command(Action):
 
         return userInput('Targets available for action:',
                          [act for act in (targets)])
+
+    def activate(self, caller, target):
+        """Performs the command.
+
+        This will create an appropriate action and then may run it and/or
+        return the action as an event for the combat to activate later.
+
+        """
+        log.debug('Activating command: {0}'.format(self.name))
+
+        newAction = Action(self, caller, target)
+
+        if newAction.event:
+            log.debug('Action has prepared an event.')
+            return newAction
