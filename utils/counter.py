@@ -6,6 +6,9 @@
 # Python imports
 import logging as log
 
+# Module imports
+from utils.exceptions import CounterException
+
 
 class Counter:
     """Class for handling and manipulating counters"""
@@ -43,21 +46,38 @@ class Counter:
         log.debug('Returning the counter value')
         return(self.value)
 
-    def reduce(self, amount):
-        """Decrease the counter"""
+    def reduce(self, amount, default=False):
+        """Decrease the counter
+
+        If the default flag is active then the default value is decremented.
+
+        """
         log.debug('Decreasing a counter.')
-        amount = int(amount)
+        self.increase((-1 * amount), default)
 
-        self.value -= amount
-        self._cleanup()
+    def increase(self, amount, default=False):
+        """Increase a counter.
 
-    def increase(self, amount):
-        """Increase a counter"""
+        If the default flag is active then the default value is incremented.
+
+        """
         log.debug('Increasing a counter.')
         amount = int(amount)
 
-        self.value += amount
-        self._cleanup()
+        if default:
+            log.debug('Changing default value')
+            if (((self.default + amount) < self.minimum) or
+                    ((self.default + amount) > self.maximum)):
+                log.error('Default out of range')
+                raise CounterException('Default incremented to {0}, over '
+                                       'maximum of counter ({1})'.format(
+                                           (self.default + amount),
+                                           self.maximum))
+            self.default += amount
+        else:
+            log.debug('Change regular value')
+            self.value += amount
+            self._cleanup()
 
     def min(self):
         """Minimise the counter"""

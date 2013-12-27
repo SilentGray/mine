@@ -13,6 +13,10 @@ class CombatException(Exception):
     pass
 
 
+class CounterException(Exception):
+    pass
+
+
 class CommandException(Exception):
     pass
 

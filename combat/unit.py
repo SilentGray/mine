@@ -13,12 +13,26 @@ from utils.exceptions import UnitException
 from display.interface import userInput
 import utils.counter as counter
 import combat.event as event
+import combat.action as action
 import combat.command as command
 import combat.team as team
 
 # Status.
 OK = 'OK'
 DEAD = 'Dead'
+
+# Attribute definitions
+HP = 'hitpoints'
+DEF = 'defence'
+EVA = 'evasion'
+SPE = 'speed'
+ATT = 'attack'
+
+# Maximum stat for non-HP attributes
+MAXSTAT = 100
+
+# Attribute categories
+SIMATTR = [DEF, EVA, SPE]
 
 
 class Unit(event.Event):
@@ -38,29 +52,30 @@ class Unit(event.Event):
             """Get a value from the current config file"""
             return config.get(self.unitId, field)
 
-        file = 'custom/unit.ini'
+        unitfile = 'custom/unit.ini'
         config = configparser.ConfigParser()
-        config.read(file)
+        config.read(unitfile)
         if self.unitId not in config.sections():
             raise UnitException('Invalid value; key \'%s\' not in %s' %
-                                (self.unitId, file))
+                                (self.unitId, unitfile))
 
         # Name usage:
         # .name       - short-term name storage, preserved for length of a
         #               combat
         # .uniqueName - permanant storage of a unique name
-        # .longName   - permanant storage of a full name
+        # .longName   - permanant storage of a full unit-type name
         self.name = None
         self.uniqueName = None
         self.longName = getConfig('name')
 
         self.team = team.Team(unitTeam)
-        self.hitpoints = counter.Counter(int(getConfig('hitpoints')))
+
+        # Attribute intitialization
+        self._setupAttr(getConfig)
 
         # Event initialisation.
         event.Event.__init__(self,
-                             None,
-                             int(getConfig('speed')),
+                             self.attributes[SPE].value,
                              recurring=True)
 
         # Whether the unit is automatic, or user-controlled.
@@ -69,14 +84,64 @@ class Unit(event.Event):
         # Setup a list of commands the unit can use.
         self._generate_commands(getConfig('commands').split(','))
 
+    def _setupAttr(self, configGetter):
+        """Sets the default attributes for the unit, as outlaid in the config
+        file.
+
+        """
+        log.debug('Setting default attributes')
+
+        self.attributes = {}
+
+        def setStat(value):
+            """Returns a counter for a single stat.
+
+            Sets up a new counter up to _MAXSTAT_ at the value given.
+
+            """
+            log.debug('Setting stat')
+            stat = counter.Counter(MAXSTAT)
+            stat.default = value
+            stat.reset()
+            return stat
+
+        # Setup HP, which does not obey _MAXSTAT_.
+        self.attributes[HP] = counter.Counter(int(configGetter(HP)))
+
+        # Setup simple attributes
+        for attr in SIMATTR:
+            log.debug('Setup attribute: {0}'.format(attr))
+            self.attributes[attr] = setStat(int(configGetter(attr)))
+
+        # Setup all the attack attributes
+        self.attributes[ATT] = {}
+        for attattr in action.ATTACKTYPES:
+            log.debug('Setup attack attribute: {0}'.format(attr))
+            self.attributes[ATT][attattr] = setStat(int(configGetter(attattr)))
+
     def _generate_commands(self, entries):
         """Generate the command objects for this unit"""
         log.debug('Adding commands to unit %s' % self)
         self.commands = []
 
+        self.commands.append(command.Command('attack'))
+
         for entry in entries:
-            newCommand = command.Command(entry)
-            self.commands.append(newCommand)
+
+            # Ignore blank string commands
+            if entry:
+                newCommand = command.Command(entry)
+                self.commands.append(newCommand)
+
+        self.commands.append(command.Command('pass'))
+
+    def getAttack(self, attType):
+        """Returns the value of the attack stat _type_."""
+        return self.attributes[ATT][attType].value
+
+    def getDefence(self):
+        """Returns the value of the defence stat."""
+        return self.attributes[DEF].value
 
     def setName(self, name):
         """Sets a unique name for a unit."""
@@ -84,7 +149,11 @@ class Unit(event.Event):
         self.uniqueName = name
 
     def turn(self, targets):
-        """Unit takes a turn"""
+        """Unit takes a turn
+
+        This will return an event to add to the combatlist if required.
+
+        """
         log.debug('Turn from %s next' % self.name)
 
         choice = self.getChoice()
@@ -97,16 +166,16 @@ class Unit(event.Event):
                                             auto=self.auto)
 
         # Do action.
-        log.info('%s uses %s on %s' % (self.name,
+        log.debug('%s uses %s on %s' % (self.name,
                                        choice.name,
                                        targetChoice.name))
-        choice.doAction(targetChoice)
+        return choice.activate(self, targetChoice)
 
     def state(self):
         """Returns the state of the unit"""
         log.debug('Getting state for unit %s' % self.name)
 
-        if self.hitpoints.value == 0:
+        if self.attributes[HP].value == 0:
             log.debug('Unit is dead')
             return DEAD
 
@@ -128,41 +197,41 @@ class Unit(event.Event):
         """Kill a unit"""
         log.debug('Killing unit %s' % self.name)
 
-        self.hitpoints.min()
+        self.attributes[HP].min()
 
     def reset(self):
         """Reset a unit"""
         log.debug('Resetting unit %s' % self.name)
 
-        self.hitpoints.reset()
+        self.attributes[HP].reset()
 
     def damage(self, amount):
         """Take set amount of damage"""
         log.debug('Unit %s takes %d damage' % (self.name, amount))
 
         if self.canDamage():
-            self.hitpoints.reduce(amount)
+            self.attributes[HP].reduce(amount)
 
     def damageFraction(self, fraction):
         """Take fractional damage"""
         log.debug('Unit %s takes %d fractional damage' % (self.name, fraction))
 
         if self.canDamage():
-            self.hitpoints.reduceFraction(fraction)
+            self.attributes[HP].reduceFraction(fraction)
 
     def heal(self, amount):
         """Heal a set amount"""
         log.debug('Unit %s heals %d' % (self.name, amount))
 
         if self.canHeal():
-            self.hitpoints.increase(amount)
+            self.attributes[HP].increase(amount)
 
     def healFraction(self, fraction):
         """Heal a fractional amount"""
         log.debug('Unit %s heals by fraction %d' % (self.name, fraction))
 
         if self.canHeal():
-            self.hitpoints.increaseFraction(fraction)
+            self.attributes[HP].increaseFraction(fraction)
 
     def listCommands(self):
         """Returns commands available for a unit"""
