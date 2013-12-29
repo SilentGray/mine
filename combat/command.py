@@ -11,7 +11,7 @@ import random
 # Module imports.
 from utils.exceptions import CommandException
 from utils.config import getBool
-from combat.action import Action
+from combat.action import Action, ACTIONTYPES
 from display.interface import userInput
 
 
@@ -40,8 +40,12 @@ class Command:
         self.selfOnly = getBool(getConfig('self'))
         self.offensive = getBool(getConfig('offensive'))
 
-        self.actionType = getConfig('type')
         self.amount = int(getConfig('amount'))
+        self.actionType = getConfig('type')
+
+        rawAttrs = getConfig('buffattr').split(',')
+        self.buffAttrs = [attr.strip() for attr in rawAttrs
+                          if attr.strip() is not '']
 
         self.delay = int(getConfig('delay'))
         if self.delay:

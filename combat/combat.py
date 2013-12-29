@@ -1,3 +1,4 @@
+
 #------------------------------------------------------------------------------
 # Module: combat.py
 #------------------------------------------------------------------------------
@@ -9,7 +10,7 @@ import logging as log
 # Module imports.
 from utils.exceptions import CombatException
 import combat.event as event
-import combat.unit as unit
+import units.unit as unit
 import display.interface as intface
 
 # Victory conditions.
