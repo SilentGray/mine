@@ -22,6 +22,7 @@ import logging as log
 import random
 
 # Module imports.
+from utils.mlog import logwrap
 from utils.exceptions import ActionException
 import combat.event as event
 
@@ -37,6 +38,7 @@ ATTACKTYPES = [MELEE, RANGED]
 class Action(event.Event):
     """Class for manipulating and handling combat actions."""
 
+    @logwrap
     def __init__(self, command, caller, target):
         """Sets up a new action.
 
@@ -83,6 +85,7 @@ class Action(event.Event):
         event.Event.__init__(self, self.expiry, recurring=False)
         self.event = True
 
+    @logwrap
     def turn(self, targets):
         """Executes a turn of the action.
 
@@ -111,6 +114,7 @@ class Action(event.Event):
         # No action to do, so expire the earlier action.
         self.doExpire()
 
+    @logwrap
     def setName(self, expiry=False):
         """Sets an appropriate name for the action"""
         if expiry:
@@ -119,6 +123,7 @@ class Action(event.Event):
             mid = self.command.name
         self.name = '(' + mid + ')'
 
+    @logwrap
     def doAction(self):
         """Performs the action."""
         log.debug('Performing action %s on: %s' % (self.command.name,
@@ -163,6 +168,7 @@ class Action(event.Event):
             raise ActionException('Unrecognised action type: %s' %
                                   self.command.actionType)
 
+    @logwrap
     def doExpire(self):
         """Expire the earlier action."""
         log.debug('Expiring action of {0} on {1}'.format(self.command.name,
@@ -190,6 +196,7 @@ class Action(event.Event):
         if self.command.expiryDescription:
             log.info(self.command.expiryDescription)
 
+    @logwrap
     def _calculateDamage(self, caller, target):
         """Calculates the impact on the target.
 
@@ -222,6 +229,7 @@ class Action(event.Event):
         log.debug('Damage calculated: "({0} + {1}) * (1 - {2}) = {3}"'.format(
             basedmg, callerdmg, targetdef, self.impact))
 
+    @logwrap
     def _buffAttribute(self):
         """Applies appropriate buffs to the target's attributes.
 
@@ -247,6 +255,7 @@ class Action(event.Event):
 
         log.debug('Final impact is: {0}'.format(self.impact))
 
+    @logwrap
     def _debuffAttribute(self):
         """Removes the buffs previously applied by this action.
 

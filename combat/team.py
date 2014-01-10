@@ -7,10 +7,14 @@
 import logging as log
 import configparser
 
+# Module imports
+from utils.mlog import logwrap
+
 
 class Team:
     """Class for handling team information"""
 
+    @logwrap
     def __init__(self, inputId):
         """Sets up a team object"""
         log.debug('New Team Object, ID: %s' % inputId)

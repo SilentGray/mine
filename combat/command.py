@@ -9,15 +9,17 @@ import configparser
 import random
 
 # Module imports.
+from utils.mlog import logwrap
 from utils.exceptions import CommandException
 from utils.config import getBool
-from combat.action import Action, ACTIONTYPES
+from combat.action import Action
 from display.interface import userInput
 
 
 class Command:
     """Class for handling and manipulating unit commands"""
 
+    @logwrap
     def __init__(self, inputId):
         """Initialises a new command object"""
         log.debug('New Command Object, ID: %s' % inputId)
@@ -56,6 +58,7 @@ class Command:
         if self.expiry:
             self.expiryDescription = getConfig('expiry_description')
 
+    @logwrap
     def getTarget(self, targets, allies, auto=False):
         """Gets a target for an action"""
         log.debug('Getting a target, excluding allies: {0}'.format(
@@ -80,6 +83,7 @@ class Command:
         return userInput('Targets available for action:',
                          [act for act in (targets)])
 
+    @logwrap
     def activate(self, caller, target):
         """Performs the command.
 
