@@ -9,7 +9,6 @@ import configparser
 import random
 
 # Modules imports
-from utils.mlog import logwrap
 from utils.exceptions import UnitException
 from display.interface import userInput
 import utils.counter as counter
@@ -39,7 +38,6 @@ SIMATTR = [DEF, EVA, SPE]
 class Unit(event.Event):
     """Class for handling and manipulating combat units"""
 
-    @logwrap
     def __init__(self, inputId, unitTeam, auto=True):
         """Initialises a new combat unit"""
         log.debug('New Combat Unit, ID: %s' % inputId)
@@ -86,7 +84,6 @@ class Unit(event.Event):
         # Setup a list of commands the unit can use.
         self._generate_commands(getConfig('commands').split(','))
 
-    @logwrap
     def _setupAttr(self, configGetter):
         """Sets the default attributes for the unit, as outlaid in the config
         file.
@@ -122,7 +119,6 @@ class Unit(event.Event):
             log.debug('Setup attack attribute: {0}'.format(attr))
             self.attributes[ATT][attattr] = setStat(int(configGetter(attattr)))
 
-    @logwrap
     def _generate_commands(self, entries):
         """Generate the command objects for this unit"""
         log.debug('Adding commands to unit %s' % self)
@@ -139,23 +135,19 @@ class Unit(event.Event):
 
         self.commands.append(command.Command('pass'))
 
-    @logwrap
     def getAttack(self, attType):
         """Returns the value of the attack stat _type_."""
         return self.attributes[ATT][attType].value
 
-    @logwrap
     def getDefence(self):
         """Returns the value of the defence stat."""
         return self.attributes[DEF].value
 
-    @logwrap
     def setName(self, name):
         """Sets a unique name for a unit."""
         log.debug('Setting unique name {0}'.format(name))
         self.uniqueName = name
 
-    @logwrap
     def turn(self, targets):
         """Unit takes a turn
 
@@ -179,7 +171,6 @@ class Unit(event.Event):
                                         targetChoice.name))
         return choice.activate(self, targetChoice)
 
-    @logwrap
     def state(self):
         """Returns the state of the unit"""
         log.debug('Getting state for unit %s' % self.name)
@@ -190,28 +181,24 @@ class Unit(event.Event):
 
         return OK
 
-    @logwrap
     def canHeal(self):
         """Determines if unit is in a healable state"""
         result = (self.state() != DEAD)
         log.debug('Checking if can heal, result: %s' % result)
         return result
 
-    @logwrap
     def canDamage(self):
         """Determines if unit can be damaged"""
         result = (self.state() != DEAD)
         log.debug('Checking if can damage, result: %s' % result)
         return result
 
-    @logwrap
     def kill(self):
         """Kill a unit"""
         log.debug('Killing unit %s' % self.name)
 
         self.attributes[HP].min()
 
-    @logwrap
     def reset(self):
         """Reset a unit"""
         log.debug('Resetting unit %s' % self.name)
@@ -227,7 +214,6 @@ class Unit(event.Event):
             log.debug('Reset attack-{0}'.format(attAttr))
             self.attributes[ATT][attAttr].reset()
 
-    @logwrap
     def buff(self, attr, amount):
         """Buff attribute _attr_ by _amount_
 
@@ -249,7 +235,6 @@ class Unit(event.Event):
 
         return attrLoc.increase(amount)
 
-    @logwrap
     def damage(self, amount):
         """Take set amount of damage"""
         log.debug('Unit %s takes %d damage' % (self.name, amount))
@@ -257,7 +242,6 @@ class Unit(event.Event):
         if self.canDamage():
             self.attributes[HP].reduce(amount)
 
-    @logwrap
     def damageFraction(self, fraction):
         """Take fractional damage"""
         log.debug('Unit %s takes %d fractional damage' % (self.name, fraction))
@@ -265,7 +249,6 @@ class Unit(event.Event):
         if self.canDamage():
             self.attributes[HP].reduceFraction(fraction)
 
-    @logwrap
     def heal(self, amount):
         """Heal a set amount"""
         log.debug('Unit %s heals %d' % (self.name, amount))
@@ -273,7 +256,6 @@ class Unit(event.Event):
         if self.canHeal():
             self.attributes[HP].increase(amount)
 
-    @logwrap
     def healFraction(self, fraction):
         """Heal a fractional amount"""
         log.debug('Unit %s heals by fraction %d' % (self.name, fraction))
@@ -281,13 +263,11 @@ class Unit(event.Event):
         if self.canHeal():
             self.attributes[HP].increaseFraction(fraction)
 
-    @logwrap
     def listCommands(self):
         """Returns commands available for a unit"""
         log.debug('Getting commands for %s' % self.name)
         return ', '.join([command.name for command in self.commands])
 
-    @logwrap
     def getChoice(self):
         """Gets an action for a turn"""
         log.debug('Getting an action')

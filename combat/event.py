@@ -7,7 +7,6 @@
 import logging as log
 
 # Module imports.
-from utils.mlog import logwrap
 import utils.counter as counter
 
 # Timer types.
@@ -19,7 +18,6 @@ POP_DIE = 2
 class Event:
     """Class for managing combat events"""
 
-    @logwrap
     def __init__(self, count, recurring=False):
         """Initialise a new event"""
         log.debug('Initializing new event %s' % self)
@@ -27,7 +25,6 @@ class Event:
         self.time = counter.Counter(count)
         self.recurring = recurring
 
-    @logwrap
     def expire(self):
         """Behaviour when a event expires"""
         log.debug('Event %s expired' % self)
@@ -38,7 +35,6 @@ class Event:
         else:
             return POP_DIE
 
-    @logwrap
     def checkValid(self):
         """Reduce and check the event timer"""
         log.debug('Checking event timer %s' % self)
@@ -48,7 +44,6 @@ class Event:
             return self.expire()
         return SILENT
 
-    @logwrap
     def turn(self, targets):
         """Executes the action of the event"""
         log.debug('Triggering action')

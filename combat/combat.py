@@ -1,4 +1,3 @@
-
 #------------------------------------------------------------------------------
 # Module: combat.py
 #------------------------------------------------------------------------------
@@ -8,7 +7,6 @@
 import logging as log
 
 # Module imports.
-from utils.mlog import logwrap
 from utils.exceptions import CombatException
 import combat.event as event
 import units.unit as unit
@@ -31,7 +29,6 @@ UNITINFO = """%s %d/%d
 class Combat:
     """Class for managing, handling and displaying hostile combats"""
 
-    @logwrap
     def __init__(self, units, victory=DEATHMATCH):
         """Initialises a new combat"""
         log.debug('Initialise a new combat')
@@ -40,7 +37,6 @@ class Combat:
         self._setVictoryCond(victory)
         self._setupCombat()
 
-    @logwrap
     def _setVictoryCond(self, victoryCondId):
         """Sets the victory condition for the combat"""
         log.debug('Set victory condition')
@@ -49,7 +45,6 @@ class Combat:
 
         self.checkCombatEnd = victoryCond[victoryCondId]
 
-    @logwrap
     def _setupCombat(self):
         """Sets up the combat.
 
@@ -91,7 +86,6 @@ class Combat:
 
             self.combatList.append(entry)
 
-    @logwrap
     def _cleanUnits(self):
         """Remove dead units from the combatlist"""
         log.debug('Removing dead units')
@@ -102,7 +96,6 @@ class Combat:
                 log.info('Remove dead unit: {0}'.format(unt.name))
                 self.combatList.remove(unt)
 
-    @logwrap
     def run(self):
         """Runs a combat"""
         log.info('Running combat')
@@ -142,13 +135,11 @@ class Combat:
         #----------------------------------------------------------------------
         raise CombatException('Unexpected exit of running combat')
 
-    @logwrap
     def activelist(self):
         """Returns the active combatlist"""
         return (self.combatList[self.nextActive:] +
                 self.combatList[:self.nextActive])
 
-    @logwrap
     def spin(self):
         """Cycle the combat to the next action"""
         log.debug('Spinning cycle')
@@ -182,7 +173,6 @@ class Combat:
     # These return either 'None' (no winner - yet), or by returning a
     # list of the winning team IDs.
     #--------------------------------------------------------------------------
-    @logwrap
     def conditionDeathmatch(self):
         """Traditional match to the death.
 
@@ -222,7 +212,6 @@ class Combat:
     #--------------------------------------------------------------------------
     # Combat display handling.
     #--------------------------------------------------------------------------
-    @logwrap
     def printStatus(self):
         """Prints the combat status display"""
         log.debug('Printing combat status')
@@ -256,7 +245,6 @@ class Combat:
             displayEntries(toDisplay[team])
             intface.printBlank()
 
-    @logwrap
     def printOrder(self):
         """Prints the upcoming combat order"""
         log.debug('Printing combat order')
@@ -273,7 +261,6 @@ class Combat:
         intface.printText('  ' + ', '.join([entry.name for entry in
                                             self.activelist()[:numToPrint]]))
 
-    @logwrap
     def printCommands(self, unit):
         """Prints commands available for the next turn"""
         log.debug('Printing commands for %s' % unit.name)
