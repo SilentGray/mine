@@ -11,123 +11,19 @@ import sys
 sys.path.append('.')
 
 # Module imports.
+import units.unit as unit
 import combat.action as action
 import combat.combat as combat
-import combat.unit as unit
 import combat.command as command
 import combat.event as event
 import combat.team as team
-import utils.exceptions as exceptions
-import unittests.testutils.testutils as testutils
+from unittests.testutils.testutils import (soh, getKeys,
+                                           getTestUnit, getTestCombat)
 
 log.basicConfig(filename='logs/combattests.log',
                 level=log.DEBUG,
                 filemode='w',
                 format='%(levelname)s >> %(message)s')
-
-soh = testutils.StdOutHandler()
-
-
-def getTestUnit():
-    return unit.Unit('mech', 'rebels')
-
-
-def getTestCombat():
-    return combat.Combat([unit.Unit('drone', 'rebels'),
-                          unit.Unit('drone', 'autoarmy')])
-
-
-def getTestCommand():
-    return command.Command('attack')
-
-
-class TestUnitModule(unittest.TestCase):
-    """Unit tests for the unit module"""
-
-    def testUnitCommands(self):
-        """Test unit command generation"""
-        log.info('Starting unit commands unit-test')
-
-        newUnit = getTestUnit()
-
-        def checkCommand(command):
-            """Check for the presence of a particular command"""
-            log.debug('Check command: {0}'.format(command))
-            self.assertTrue(len([cmd for cmd in newUnit.commands
-                                 if cmd.name == command]) > 0,
-                            'Command "{0}" not owned by test unit'.format(
-                                command))
-
-        for cmd in ['attack', 'armour', 'pass']:
-            checkCommand(cmd)
-
-    def testUnitDisplay(self):
-        """Test of displaying unit information"""
-        log.info('Starting unit display unit-test')
-
-        newUnit = getTestUnit()
-        self.assertEqual(newUnit.listCommands(), 'attack, armour, pass')
-
-        soh.hideStdOut()
-        # Unit must be automated or test will hang for user input.
-        self.assertTrue(newUnit.auto)
-        newUnit.getChoice()
-        soh.restoreStdOut()
-
-    def testUnitMortality(self):
-        """Unit test for testing unit mortality"""
-        log.info('Starting unit mortality unit-test')
-
-        newUnit = getTestUnit()
-
-        #----------------------------------------------------------------------
-        # Sets of actions.  Either a single action, or a list of actions.
-        #
-        # The second entry of the tuple is the expected end state.
-        #----------------------------------------------------------------------
-        actionSet = [(lambda: newUnit.kill(), unit.DEAD),
-                     (lambda: newUnit.damageFraction(1), unit.DEAD),
-                     (lambda: newUnit.damage(1), unit.OK),
-                     (lambda: newUnit.damage(999), unit.DEAD),
-                     ([lambda: newUnit.damage(1) for x in range(999)],
-                      unit.DEAD),
-                     ([lambda: newUnit.kill(),
-                       lambda: newUnit.heal(1)],
-                      unit.DEAD),
-                     ([lambda: newUnit.kill(),
-                       lambda: newUnit.healFraction(1)],
-                      unit.DEAD)]
-
-        for (actn, state) in actionSet:
-            log.debug('Check action %d' % actionSet.index((actn, state)))
-
-            # Ensure unit is in expected state.
-            newUnit.reset()
-            self.assertEqual(unit.OK, newUnit.state())
-
-            # Impact unit with action(s).
-            if isinstance(actn, (list, tuple)):
-                for act in actn:
-                    act()
-            else:
-                actn()
-
-            # Test final state is as expected.
-            log.debug(('State expected: \'%s\'; '
-                       'result: \'%s\'; health: \'%d\'') %
-                      (state,
-                       newUnit.state(),
-                       newUnit.attributes[unit.HP].value))
-            self.assertEqual(state, newUnit.state())
-
-    def testVerifyUnits(self):
-        """Unit test to verify custom units"""
-        log.info('Starting custom unit verification')
-
-        allIds = testutils.getKeys('custom/unit.ini')
-        for thisId in allIds:
-            log.info('Testing unit, ID: %s' % thisId)
-            self.assertTrue(unit.Unit(thisId, 'rebels'))
 
 
 class TestCommandModule(unittest.TestCase):
@@ -137,7 +33,7 @@ class TestCommandModule(unittest.TestCase):
         """Unit test to verify custom commands"""
         log.info('Starting custom command verification')
 
-        allIds = testutils.getKeys('custom/command.ini')
+        allIds = getKeys('custom/command.ini')
         for thisId in allIds:
             log.info('Testing command, ID: %s' % thisId)
             self.assertTrue(command.Command(thisId))
@@ -146,7 +42,7 @@ class TestCommandModule(unittest.TestCase):
         """Unit test for getting a target"""
         log.info('Starting unit test for command targeting')
 
-        newCmd = getTestCommand()
+        newCmd = command.Command('attack')
         newCbt = getTestCombat()
         newCmd.getTarget(newCbt.units, 'rebels', auto=True)
 
@@ -157,7 +53,7 @@ class TestTeamModule(unittest.TestCase):
     def testVerifyTeams(self):
         log.info('Starting custom team verification')
 
-        allIds = testutils.getKeys('custom/team.ini')
+        allIds = getKeys('custom/team.ini')
         for thisId in allIds:
             log.info('Testing team, ID: %s' % thisId)
             self.assertTrue(team.Team(thisId))
@@ -298,8 +194,8 @@ class TestCombatModule(unittest.TestCase):
         soh.restoreStdOut()
 
 
-class TestTimerModule(unittest.TestCase):
-    """Unit tests for the timer module"""
+class TestEventModule(unittest.TestCase):
+    """Unit tests for the event module"""
 
     def testTimerInitiation(self):
         """Test of combat timer initiation"""
@@ -338,12 +234,65 @@ class TestTimerModule(unittest.TestCase):
                          'Timer did not pop and die when it should have')
 
 
+class TestActionModule(unittest.TestCase):
+    """Unit tests for the action module"""
+
+    unt = getTestUnit()
+
+    def _attrChanged(self, attr):
+        """Returns whether an attribute has been changed from its default"""
+        if attr.value == attr.default:
+            log.debug('Attribute at default value')
+            return False
+        else:
+            log.debug('Attribute changed')
+            return True
+
+    def testActionNormal(self):
+        """Test that a normal action damages a unit"""
+        self.unt.reset()
+        com = command.Command('attack')
+
+        actn = com.activate(self.unt, self.unt)
+        self.assertTrue(self._attrChanged(self.unt.attributes[unit.HP]),
+                        'Attacked unit has not taken damage')
+
+        self.assertTrue(actn is None,
+                        'Command without delay or expiry added an event to '
+                        'the combat')
+
+    def testActionDelayed(self):
+        """Test that a delayed action attacks after some time"""
+        # No commands currently do this yet
+        self.assertTrue(False, 'Test to be implemented')
+
+    def testActionExpired(self):
+        """Test that an acton expires correctly"""
+        self.unt.reset()
+        com = command.Command('armour')
+
+        actn = com.activate(self.unt, self.unt)
+        self.assertTrue(self._attrChanged(self.unt.attributes[unit.DEF]),
+                        'Buff occurred immediately')
+        self.assertTrue(actn is not None,
+                        'Command with delay didn\'t return an event for the '
+                        'combat')
+
+        actn.turn(None)
+        self.assertFalse(self._attrChanged(self.unt.attributes[unit.DEF]),
+                         'Buff did not expire')
+
+    def testActionDelayAndExpire(self):
+        """Test an action that is delayed then expired"""
+        # No commands currently do this yet
+        self.assertTrue(False, 'Test to be implemented')
+
+
 if __name__ == "__main__":
     for testClass in [TestCombatModule,
                       TestCommandModule,
-                      TestTeamModule,
-                      TestUnitModule,
                       TestActionModule,
-                      TestTimerModule]:
+                      TestTeamModule,
+                      TestEventModule]:
         suite = unittest.TestLoader().loadTestsFromTestCase(testClass)
         unittest.TextTestRunner(verbosity=3).run(suite)

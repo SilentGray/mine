@@ -12,7 +12,7 @@ specific times.
 We support a number of potential action types.  These are:
    'melee'      - Melee-type attacks
    'ranged'     - Ranged-type attacks
-   'boost'      - Direct impact on a units stat.
+   'buff'       - Direct impact on a units stat.
    'inactive'   - Special type; perform no action.
 
 """
@@ -27,10 +27,10 @@ import combat.event as event
 
 MELEE = 'melee'
 RANGED = 'ranged'
-BOOST = 'boost'
+BUFF = 'buff'
 INACTIVE = 'inactive'
 
-ACTIONTYPES = [MELEE, RANGED, BOOST, INACTIVE]
+ACTIONTYPES = [MELEE, RANGED, BUFF, INACTIVE]
 ATTACKTYPES = [MELEE, RANGED]
 
 
@@ -54,6 +54,7 @@ class Action(event.Event):
         self.caller = caller
         self.target = target
 
+        self.setName()
         self.actionToDo = False
         self.delay = command.delay
         self.expiry = command.expiry
@@ -72,13 +73,14 @@ class Action(event.Event):
                 log.debug('Delay and expiry')
                 expires = True
 
-            event.Event.__init__(self.delay, recurring=expires)
+            event.Event.__init__(self, self.delay, recurring=expires)
             self.event = True
             return
 
         # Expiry only in effect.
         self.doAction()
-        event.Event.__init__(self.expires, recurring=False)
+        self.setName(expiry=True)
+        event.Event.__init__(self, self.expiry, recurring=False)
         self.event = True
 
     def turn(self, targets):
@@ -101,6 +103,7 @@ class Action(event.Event):
             # If we also need to expire the action then reset the timer.
             if self.expires:
                 log.debug('Reset timer for expiry of action')
+                self.setName(expiry=True)
                 event.Event.__init__(self.expires, recurring=False)
 
             return
@@ -108,9 +111,18 @@ class Action(event.Event):
         # No action to do, so expire the earlier action.
         self.doExpire()
 
+    def setName(self, expiry=False):
+        """Sets an appropriate name for the action"""
+        if expiry:
+            mid = '-'.join([self.command.name, 'expiry'])
+        else:
+            mid = self.command.name
+        self.name = '(' + mid + ')'
+
     def doAction(self):
         """Performs the action."""
-        log.debug('Performing action %s on: %s' % (self.command, self.target))
+        log.debug('Performing action %s on: %s' % (self.command.name,
+                                                   self.target.name))
 
         if self.command.actionType == INACTIVE:
             log.debug('Action is %s' % INACTIVE)
@@ -120,13 +132,31 @@ class Action(event.Event):
         elif self.command.actionType in ATTACKTYPES:
             log.debug('Action is %s' % self.command.actionType)
 
-            self.calculateDamage(self.caller, self.target)
+            self._calculateDamage(self.caller, self.target)
             log.info('{0} uses {1} on {2} for {3} damage'.format(
                 self.caller.name,
                 self.command.name,
                 self.target.name,
-                self.damage))
-            self.target.damage(self.damage)
+                self.impact))
+            self.target.damage(self.impact)
+
+        elif self.command.actionType == BUFF:
+            log.debug('Action is %s' % BUFF)
+
+            self._buffAttribute()
+
+            if self.impact:
+                log.info('{0} uses {1} on {2} to change {3} by {4}'.format(
+                         self.caller.name,
+                         self.command.name,
+                         self.target.name,
+                         ', '.join(self.command.buffAttrs),
+                         self.impact))
+            else:
+                log.info('{0} uses {1} on {2} with no impact'.format(
+                    self.caller.name,
+                    self.command.name,
+                    self.target.name))
 
         else:
             log.debug('Unrecognised action type: %s' % self.command.actionType)
@@ -135,20 +165,21 @@ class Action(event.Event):
 
     def doExpire(self):
         """Expire the earlier action."""
-        log.debug('Expiring action of {0} on {1}'.format(
-            self.command, ', '.join(self.targets)))
+        log.debug('Expiring action of {0} on {1}'.format(self.command.name,
+                                                         self.target))
 
         if self.command.actionType == INACTIVE:
             log.debug('Expiry of {0}'.format(INACTIVE))
 
             # Do nothing.
 
-        elif self.command.actionType in ACTIONTYPES:
+        elif self.command.actionType in ATTACKTYPES:
             log.debug('Expiry of {0}'.format(self.command.actionType))
+            self.target.heal(self.impact)
 
-            for target in self.target:
-                log.debug('Expire on {0}'.target.name)
-                target.heal(self.damage)
+        elif self.command.actionType == BUFF:
+            log.debug('Expiry of {0}'.format(BUFF))
+            self._debuffAttribute()
 
         else:
             log.debug('Unrecognised action type: {0}'.format(
@@ -156,7 +187,10 @@ class Action(event.Event):
             raise ActionException('Unrecognised action type: {0}'.format(
                 self.actionType))
 
-    def calculateDamage(self, caller, target):
+        if self.command.expiryDescription:
+            log.info(self.command.expiryDescription)
+
+    def _calculateDamage(self, caller, target):
         """Calculates the impact on the target.
 
         Requires to specify the target and whether the attack is physical
@@ -184,6 +218,43 @@ class Action(event.Event):
         # Decrement by the target's defence
         targetdef = self.caller.getDefence() / 100
 
-        self.damage = int((basedmg + callerdmg) * (1 - targetdef))
+        self.impact = int((basedmg + callerdmg) * (1 - targetdef))
         log.debug('Damage calculated: "({0} + {1}) * (1 - {2}) = {3}"'.format(
-            basedmg, callerdmg, targetdef, self.damage))
+            basedmg, callerdmg, targetdef, self.impact))
+
+    def _buffAttribute(self):
+        """Applies appropriate buffs to the target's attributes.
+
+        This attempts to apply the total buff to each stat, up to the
+        appropriate maximum and minimum.  When buffing the actual changes are
+        recorded in a dictionary at _self.impact_ so that we can expire
+        the changes later.
+
+        """
+        log.debug('Calculating buffs')
+
+        baseBuff = self.command.amount
+
+        self.impact = {}
+
+        for attr in self.command.buffAttrs:
+            log.debug('Acting on {0}'.format(attr))
+            change = self.target.buff(attr, baseBuff)
+
+            # Only record the value if a change occured.
+            if change:
+                self.impact[attr] = change
+
+        log.debug('Final impact is: {0}'.format(self.impact))
+
+    def _debuffAttribute(self):
+        """Removes the buffs previously applied by this action.
+
+        This checks the information recorded in _self.impact_ to do so.
+
+        """
+        log.debug('Applying debuffs')
+
+        for attr in self.impact:
+            log.debug('Debuff: {0}'.format(attr))
+            self.target.buff(attr, (-1 * self.impact[attr]))

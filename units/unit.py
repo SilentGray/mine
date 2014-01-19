@@ -167,8 +167,8 @@ class Unit(event.Event):
 
         # Do action.
         log.debug('%s uses %s on %s' % (self.name,
-                                       choice.name,
-                                       targetChoice.name))
+                                        choice.name,
+                                        targetChoice.name))
         return choice.activate(self, targetChoice)
 
     def state(self):
@@ -203,7 +203,37 @@ class Unit(event.Event):
         """Reset a unit"""
         log.debug('Resetting unit %s' % self.name)
 
+        log.debug('Reset {0}'.format(HP))
         self.attributes[HP].reset()
+
+        for attr in SIMATTR:
+            log.debug('Reset {0}'.format(attr))
+            self.attributes[attr].reset()
+
+        for attAttr in action.ATTACKTYPES:
+            log.debug('Reset attack-{0}'.format(attAttr))
+            self.attributes[ATT][attAttr].reset()
+
+    def buff(self, attr, amount):
+        """Buff attribute _attr_ by _amount_
+
+        Returns the actual change in the attribute.
+
+        """
+        log.debug('Buffing {0} by {1}'.format(attr, amount))
+
+        if attr in action.ATTACKTYPES:
+            log.debug('Attribute is an attack type')
+            attrLoc = self.attributes[ATT][attr]
+        elif attr == ATT:
+            log.debug('Attribute is the general attack stat')
+            raise UnitException('Attempt to buff the general attack stat; '
+                                'which is unsupported')
+        else:
+            log.debug('Attribute is a base type')
+            attrLoc = self.attributes[attr]
+
+        return attrLoc.increase(amount)
 
     def damage(self, amount):
         """Take set amount of damage"""

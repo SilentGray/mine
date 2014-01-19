@@ -2,7 +2,7 @@ import logging as log
 
 import maps.field as fi
 import combat.combat as co
-import combat.unit as un
+import units.unit as un
 
 log.basicConfig(filename='logs/mine.log',
                 level=log.DEBUG,

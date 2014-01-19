@@ -11,7 +11,11 @@ from utils.exceptions import CounterException
 
 
 class Counter:
-    """Class for handling and manipulating counters"""
+    """Class for handling and manipulating counters
+
+    Methods which change the value of the counter return the difference.
+
+    """
 
     def __init__(self, numCount, initFull=True):
         """Initializes a new counter"""
@@ -53,7 +57,7 @@ class Counter:
 
         """
         log.debug('Decreasing a counter.')
-        self.increase((-1 * amount), default)
+        return self.increase((-1 * amount), default)
 
     def increase(self, amount, default=False):
         """Increase a counter.
@@ -62,6 +66,7 @@ class Counter:
 
         """
         log.debug('Increasing a counter.')
+        initial = self.value
         amount = int(amount)
 
         if default:
@@ -79,28 +84,40 @@ class Counter:
             self.value += amount
             self._cleanup()
 
+        return (self.value) - initial
+
     def min(self):
         """Minimise the counter"""
         log.debug('Minimise a counter.')
+        initial = self.value
 
         self.value = self.minimum
+        return (self.value - initial)
 
     def reset(self):
         """Reset the counter"""
         log.debug('Resetting a counter.')
+        initial = self.value
 
         self.value = self.default
+        return (self.value - initial)
 
     def reduceFraction(self, fraction):
         """Reduce the amount by a fraction"""
         log.debug('Reducing the counter by a fraction')
+        initial = self.value
 
         newValue = self.value * (1 - fraction)
         self.value = int(newValue)
 
+        return (self.value - initial)
+
     def increaseFraction(self, fraction):
         """Increase the amount by a fraction"""
         log.debug('Increasing the counter by a fraction')
+        initial = self.value
 
         newValue = self.value * (1 + fraction)
         self.value = int(newValue)
+
+        return (self.value - initial)
