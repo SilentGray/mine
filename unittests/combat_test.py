@@ -263,8 +263,19 @@ class TestActionModule(unittest.TestCase):
 
     def testActionDelayed(self):
         """Test that a delayed action attacks after some time"""
-        # No commands currently do this yet
-        self.assertTrue(False, 'Test to be implemented')
+        self.unt.reset()
+        com = command.Command('heavy-swing')
+
+        actn = com.activate(self.unt, self.unt)
+        self.assertFalse(self._attrChanged(self.unt.attributes[unit.HP]),
+                         'Command with delay hit immediately')
+
+        self.assertTrue(actn is not None,
+                        'Command with delay added action to combat')
+
+        actn.turn(None)
+        self.assertTrue(self._attrChanged(self.unt.attributes[unit.HP]),
+                        'Command with delay did not hit')
 
     def testActionExpired(self):
         """Test that an acton expires correctly"""
@@ -284,8 +295,32 @@ class TestActionModule(unittest.TestCase):
 
     def testActionDelayAndExpire(self):
         """Test an action that is delayed then expired"""
-        # No commands currently do this yet
-        self.assertTrue(False, 'Test to be implemented')
+        self.unt.reset()
+        com = command.Command('psyche-up')
+
+        actn = com.activate(self.unt, self.unt)
+
+        self.assertFalse(self._attrChanged(
+            self.unt.attributes[unit.ATT][action.MELEE]),
+            'Action incorrectly acted immediately')
+
+        self.assertTrue(actn is not None,
+                        'Command with delay didn\'t add an event to the '
+                        'combat')
+
+        actn.turn(None)
+        self.assertTrue(self._attrChanged(
+            self.unt.attributes[unit.ATT][action.MELEE]),
+            'Action had no eventual impact')
+
+        self.assertTrue(actn is not None,
+                        'Command with expiry didn\'t add an event to the '
+                        'combat after delay')
+
+        actn.turn(None)
+        self.assertFalse(self._attrChanged(
+            self.unt.attributes[unit.ATT][action.MELEE]),
+            'Action did not expire')
 
 
 if __name__ == "__main__":

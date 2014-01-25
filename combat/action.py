@@ -69,7 +69,7 @@ class Action(event.Event):
             log.debug('Setup a delay for action')
             self.actionToDo = True
             expires = False
-            if self.expires:
+            if self.expiry:
                 log.debug('Delay and expiry')
                 expires = True
 
@@ -101,10 +101,10 @@ class Action(event.Event):
             self.actionToDo = False
 
             # If we also need to expire the action then reset the timer.
-            if self.expires:
+            if self.expiry:
                 log.debug('Reset timer for expiry of action')
                 self.setName(expiry=True)
-                event.Event.__init__(self.expires, recurring=False)
+                event.Event.__init__(self, self.expiry, recurring=False)
 
             return
 
